@@ -2,6 +2,11 @@
 #include <iostream>
 #include "lexer.h"
 
+//~~~~ To Do ~~~~~~~
+//Add constructors (pass null if empty)
+//Add destructors
+//Dicide if print will be in Node or Parser
+
 using namespace std;
 
 class Node
@@ -16,6 +21,14 @@ private:
 
 };
 
+Node::Node()
+{
+}
+
+Node::~Node()
+{
+}
+
 class NodeList : public Node {
 public:
 	void add(Node* node){
@@ -29,8 +42,6 @@ class RootNode : public Node {
 	NodeList *defs; // would be null if not there
 	NodeList *decls;
 	NodeList *statements;
-
-	Token firstDollar, second, third;
 };
 
 class FunctionDef : public Node {
@@ -41,67 +52,48 @@ class FunctionDef : public Node {
 };
 
 class ParamDef : public Node {
-	Token id;
-
-
-};
-
-class Qualifier : public Node {
-	Token id;
-
-
+	Token qualifier;
+	NodeList* ids;
 };
 
 class Declaration : public Node {
-	Token id;
-
-
-};
-
-class Compound : public Node {
-	Token id;
-
-
+	Token qualifier;
+	NodeList* ids;
 };
 
 class Assign : public Node {
 	Token id;
-
-
+	Node* expression;
 };
 
 class If : public Node {
-	Token id;
-
+	Condition* condition;
+	NodeList* ifbody;
+	NodeList* elsebody;
 
 };
 
 class Return : public Node {
-	Token id;
-
-
+	Node* expression;
 };
 
 class Write : public Node {
-	Token id;
-
-
+	Node* expression;
 };
 
 class Read : public Node {
-	Token id;
-
-
+	NodeList* ids;
 };
 
 class While : public Node {
-	Token id;
-
-
+	Condition* condition;
+	NodeList* body;
 };
 
 class Condition : public Node {
-
+	Token oper;
+	Node* left;
+	Node* right;
 };
 
 class BinaryExpression : public Node {
@@ -115,7 +107,7 @@ class UrinaryExpression : public Node {
 };
 
 class Identifier : public Node {
-
+	Token value;
 };
 
 class Integer : public Node {
@@ -130,6 +122,10 @@ class Bool : public Node {
 	Token value;
 };
 
+class FunctionCall : public Node {
+	Token id;
+	NodeList* arguements;
+};
 
 
 
@@ -137,13 +133,5 @@ class Bool : public Node {
 
 
 
-
-Node::Node()
-{
-}
-
-Node::~Node()
-{
-}
 
 
