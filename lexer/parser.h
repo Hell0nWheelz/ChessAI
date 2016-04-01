@@ -23,6 +23,24 @@ private:
 	RootNode* root;
 	NodeList* ParseFunctDefs();
 	FunctionDef* parseFunctionDef();
+	ParamDef* parseParamDef();
+	Declaration* parseDecl();
+	Assign* parseAssign();
+	If* parseIf();
+	Return* parseReturn();
+	Write* parseWrite();
+	Read* parseRead();
+	While* parseWhile();
+	Condition* parseCondition();
+	BinaryExpression* parseCondition();
+	UrinaryExpression* parseUrinaryExpression();
+	Identifier* parseIdentifier();
+	Integer* parseInteger();
+	Real* parseReal();
+	Bool* parseBool();
+	FunctionCall* parseFunctionCall();
+
+
 };
 
 Parser::~Parser()
@@ -42,15 +60,15 @@ void Parser::ParseFile() {
 }
 
 NodeList* Parser::ParseFunctDefs() {
-	auto tok = lex.next();
-	NodeList* defs = new NodeList;
+	auto tok = lex.next();				// gets token from lexer
+	NodeList* defs = new NodeList;		// creates vector list of defs
 	while (true)
 	{
-		if (tok.value == "$$") {
+		if (tok.value == "$$") {		//
 			// no definitions
 			return defs;
 		}
-		auto def = parseFunctionDef();
+		auto def = parseFunctionDef();	// def = FunctionDef* parseFunctionDef()
 		if (def) {
 			//adds function to nodelist
 			defs->add(def);
@@ -60,4 +78,71 @@ NodeList* Parser::ParseFunctDefs() {
 			throw "There is an error";
 		}
 	}
+}
+
+FunctionDef* Parser::parseFunctionDef() {
+
+}
+ParamDef* Parser::parseParamDef() {
+
+}
+Declaration* Parser::parseDecl() {
+
+}
+Assign* Parser::parseAssign() {
+
+}
+If* Parser::parseIf() {
+
+}
+Return* Parser::parseReturn() {
+
+}
+Write* Parser::parseWrite() {
+
+}
+Read* Parser::parseRead() {
+
+}
+While* Parser::parseWhile() {
+
+}
+Condition* Parser::parseCondition() {
+
+}
+BinaryExpression* Parser::parseCondition() {
+
+}
+UrinaryExpression* Parser::parseUrinaryExpression() {
+
+}
+Identifier* Parser::parseIdentifier() {
+
+}
+Integer* Parser::parseInteger() {
+
+}
+Real* Parser::parseReal() {
+
+}
+Bool* Parser::parseBool() {
+
+}
+FunctionCall* Parser::parseFunctionCall() {
+
+}
+
+NodeList* Parser::ParseGlobalDecList() {
+	auto tok = lex.next();
+	NodeList* decls = new NodeList;
+	while (true)
+	{
+		if (tok.value == "$$") {
+			// no declarations
+			return decls;
+		}
+	}
+}
+NodeList* Parser::ParseGlobalStateList() {
+
 }
