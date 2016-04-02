@@ -81,7 +81,6 @@ NodeList* Parser::ParseFunctDefs() {
 		auto def = parseFunctionDef();	 
 		if (def) {
 			//adds function to nodelist
-			//cout << getToken().value;
 			defs->add(def);
 		}
 		else
@@ -103,28 +102,33 @@ NodeList* Parser::parseFunctionDef() {
 		throw "There is an error";
 	}
 }
+
 NodeList* Parser::parseFunction() {
 	NodeList* fun = new NodeList;
 	
+	//function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>
 	if (getToken().value == "function")
 	{
+		// <Identifier>
 		auto ident = parseIdentifier();
 		if (ident)
 		{
+			//  (
 			if (getToken().value == "(")
 			{
+				//<Opt Parameter List>
 				auto parList = parseParameterList();
-				if (parList)
-				{
-					auto decList = parseDeclaration();
-					if (getToken().value == ")")
-					{
-						auto body = parseBody();
-						fun->add(ident);
-						return fun;
-					}
-					else {
-						throw "There is an error";
+				if (parList) {  // | NULL ?
+					// )
+					if (getToken().value == ")") {
+						// <Opt Declaration List>
+						auto decList = parseDeclaration();
+						if (decList) {// or NULL?
+							//parseDecList();
+
+							//  <Body>
+							auto body = parseBody();						
+						}
 					}
 				}
 			}
@@ -133,15 +137,16 @@ NodeList* Parser::parseFunction() {
 }
 NodeList* Parser::parseIdentifier() {
 	//this needs to be changed
-	NodeList* ident = new NodeList;
-	setToken(lex.next());
-	return ident;
-	
+	if (getToken().type == IDENTIFIER)
+	{
+		//
+	}
 }
 NodeList* Parser::parseParameterList() {
 	NodeList* parList = new NodeList;
-	auto par = parseParameter();
 
+	//only 1 NT child
+	auto par = parseParameter();
 	if (par)
 	{
 		parList->add(par);
@@ -154,6 +159,7 @@ NodeList* Parser::parseParameterList() {
 }
 NodeList* Parser::parseParameter() {
 	NodeList* par = new NodeList;
+	
 	auto qual = parseQualifier();
 
 	if (qual)
