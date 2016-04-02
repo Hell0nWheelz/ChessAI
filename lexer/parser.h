@@ -12,34 +12,32 @@ class Parser
 	Lexer lex;
 
 public:
-	Parser(string filename) : lex(filename) {
-
-	}
+	Parser(string filename) : lex(filename) {};
 	~Parser();
 	void ParseFile();
 	RootNode* getRoot();
+	
+	friend ostream& operator<< (ostream& os, Token &t);
+	void setToken(Token t);
+	Token getToken();
 
 private:
 	RootNode* root;
+	Token toke;
 	NodeList* ParseFunctDefs();
-	FunctionDef* parseFunctionDef();
-	ParamDef* parseParamDef();
-	Declaration* parseDecl();
-	Assign* parseAssign();
-	If* parseIf();
-	Return* parseReturn();
-	Write* parseWrite();
-	Read* parseRead();
-	While* parseWhile();
-	Condition* parseCondition();
-	BinaryExpression* parseCondition();
-	UrinaryExpression* parseUrinaryExpression();
-	Identifier* parseIdentifier();
-	Integer* parseInteger();
-	Real* parseReal();
-	Bool* parseBool();
-	FunctionCall* parseFunctionCall();
+	NodeList* ParseGlobalDecList();
+	NodeList* ParseGlobalStateList();
 
+	NodeList* parseFunctionDef();
+	NodeList* parseFunction();
+	NodeList* parseIdentifier();
+	NodeList* parseDeclaration();
+	NodeList* parseParameterList();
+	NodeList* parseParameter();
+	NodeList* parseQualifier();
+	NodeList* parseBody();
+
+	NodeList* parseStateList();
 
 };
 
@@ -48,29 +46,42 @@ Parser::~Parser()
 
 }
 
+void Parser::setToken(Token t) {
+	toke = t;
+}
+Token Parser::getToken() {
+	return toke;
+}
+// *for testing purposes* //
+ostream& operator<<(ostream& os, Token &t)
+{
+	os << t.value << t.type << endl;
+	return os;
+}
 RootNode* Parser::getRoot() {
 	return root;
 }
 
 void Parser::ParseFile() {
-//Call Function Definitions
+	//Call Function Definitions
 	auto f = ParseFunctDefs();
-	auto d = ParseGlobalDecList();
-	auto s = ParseGlobalStateList();
+	//auto d = ParseGlobalDecList();
+	//auto s = ParseGlobalStateList();
 }
 
-NodeList* Parser::ParseFunctDefs() {
-	auto tok = lex.next();				// gets token from lexer
-	NodeList* defs = new NodeList;		// creates vector list of defs
+NodeList* Parser::ParseFunctDefs() {			
+	setToken(lex.next());
+	NodeList* defs = new NodeList;		
 	while (true)
 	{
-		if (tok.value == "$$") {		//
+		if (getToken().value == "$$") {		
 			// no definitions
 			return defs;
 		}
-		auto def = parseFunctionDef();	// def = FunctionDef* parseFunctionDef()
+		auto def = parseFunctionDef();	 
 		if (def) {
 			//adds function to nodelist
+			cout << getToken().value;
 			defs->add(def);
 		}
 		else
@@ -79,70 +90,127 @@ NodeList* Parser::ParseFunctDefs() {
 		}
 	}
 }
-
-FunctionDef* Parser::parseFunctionDef() {
-
+NodeList* Parser::parseFunctionDef() {
+	NodeList* def = new NodeList;
+	auto fun = parseFunction();
+	if (fun)
+	{
+		def->add(fun);
+		return fun;
+	}
+	else
+	{
+		throw "There is an error";
+	}
 }
-ParamDef* Parser::parseParamDef() {
-
+NodeList* Parser::parseFunction() {
+	NodeList* fun = new NodeList;
+	auto ident = parseIdentifier();
+	auto parList = parseParameterList();
+	auto decList = parseDeclaration();
+	auto body = parseBody();
+	if (ident)
+	{
+		fun->add(ident);
+		return fun;
+	}
+	else
+	{
+		throw "There is an error";
+	}
 }
-Declaration* Parser::parseDecl() {
-
+NodeList* Parser::parseIdentifier() {
+	//this needs to be changed
+	NodeList* ident = new NodeList;
+	setToken(lex.next());
+	return ident;
+	
 }
-Assign* Parser::parseAssign() {
+NodeList* Parser::parseParameterList() {
+	NodeList* parList = new NodeList;
+	auto par = parseParameter();
 
+	if (par)
+	{
+		parList->add(par);
+		return par;
+	}
+	else
+	{
+		throw "There is an error";
+	}
 }
-If* Parser::parseIf() {
+NodeList* Parser::parseParameter() {
+	NodeList* par = new NodeList;
+	auto qual = parseQualifier();
 
+	if (qual)
+	{
+		par->add(qual);
+		return qual;
+	}
+	else
+	{
+		throw "There is an error";
+	}
 }
-Return* Parser::parseReturn() {
+NodeList* Parser::parseQualifier() {
+	NodeList* qual = new NodeList;
+	auto stateList = parseStateList();
 
+	if (stateList)
+	{
+		qual->add(stateList);
+		return stateList;
+	}
+	else
+	{
+		throw "There is an error";
+	}
 }
-Write* Parser::parseWrite() {
-
+NodeList* Parser::parseBody() {
+	NodeList* body = new NodeList;
+	if (getToken().value == "{")
+	{
+		auto stateList = parseStateList();
+		if (getToken().value == "}")
+			return body;
+	}
 }
-Read* Parser::parseRead() {
+NodeList* Parser::parseStateList() {
+	NodeList* stateList = new NodeList;
+	//auto state = parseState();
 
-}
-While* Parser::parseWhile() {
 
-}
-Condition* Parser::parseCondition() {
-
-}
-BinaryExpression* Parser::parseCondition() {
-
-}
-UrinaryExpression* Parser::parseUrinaryExpression() {
-
-}
-Identifier* Parser::parseIdentifier() {
-
-}
-Integer* Parser::parseInteger() {
-
-}
-Real* Parser::parseReal() {
-
-}
-Bool* Parser::parseBool() {
-
-}
-FunctionCall* Parser::parseFunctionCall() {
-
+	return stateList;
+	
 }
 
-NodeList* Parser::ParseGlobalDecList() {
-	auto tok = lex.next();
-	NodeList* decls = new NodeList;
+
+//************** Declaration List
+/*NodeList* Parser::ParseGlobalDecList() {
+	setToken(lex.next());
+	NodeList* decList = new NodeList;
 	while (true)
 	{
-		if (tok.value == "$$") {
+		if (getToken().value == "$$") {
 			// no declarations
-			return decls;
+			return decList;
+		}
+		auto dec = parseDeclaration();
+		if (dec) {
+			//adds function to nodelist
+			cout << getToken().value;
+			decList->add(dec);
+		}
+		else
+		{
+			throw "There is an error";
 		}
 	}
 }
-NodeList* Parser::ParseGlobalStateList() {
-
-}
+NodeList* Parser::parseDeclaration()
+{
+	NodeList* dec = new NodeList;
+	return dec;
+} */
