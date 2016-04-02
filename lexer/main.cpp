@@ -7,7 +7,7 @@
 #include <fstream>
 #include <string>
 #include <iomanip>
-
+#include "parser.h"
 #include "lexer.h"
 
 using namespace std;

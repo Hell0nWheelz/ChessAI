@@ -44,25 +44,41 @@ class RootNode : public Node {
 	NodeList *statements;
 };
 
+//~~~~ Completed ~~~~~~
 class FunctionDef : public Node {
+public:
+	//changed 2nd parameter to ParamDef* type
+	FunctionDef(Token id, ParamDef* params, NodeList* declarations, NodeList* body)
+		//Default Constructor Syntax
+		: funcID(id), params(params), decls(declarations), body(body) { } 
+private:
 	Token funcID;
-	NodeList *params;
+	ParamDef *params; //should this be ParamDef instead of NodeList?
 	NodeList *decls;
 	NodeList *body;
 };
-
+//~~~~ 
 class ParamDef : public Node {
+public:
+	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
+private:
 	Token qualifier;
 	NodeList* ids;
 };
 
 class Declaration : public Node {
+public:
+	Declaration(Token qual, NodeList* ids) : qualifier(qual), ids(ids) { }
+private:
 	Token qualifier;
 	NodeList* ids;
 };
 
 class Assign : public Node {
-	Token id;
+public:
+	Assign(Token id, Node* express) : assignID(id), expression(express) { }
+private:
+	Token assignID;
 	Node* expression;
 };
 
@@ -126,12 +142,6 @@ class FunctionCall : public Node {
 	Token id;
 	NodeList* arguements;
 };
-
-
-
-
-
-
 
 
 

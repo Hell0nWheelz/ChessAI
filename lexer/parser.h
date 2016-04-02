@@ -1,6 +1,9 @@
 #include <vector>
+#include <iostream>
 #include "lexer.h"
 #include "AST.h"
+
+using namespace std;
 
 //~~~~~~~~~~ Things To Do ~~~~~~~~~~~
 //Add Functions for each rule
@@ -16,28 +19,35 @@ public:
 	~Parser();
 	void ParseFile();
 	RootNode* getRoot();
-	
-	friend ostream& operator<< (ostream& os, Token &t);
-	void setToken(Token t);
-	Token getToken();
 
-private:
+	//private:
+	void throwError(string s, Token &t);
+
 	RootNode* root;
-	Token toke;
+
 	NodeList* ParseFunctDefs();
+
+	FunctionDef* parseFunction();
+	FunctionDef* parseFunctionDef();
+
+	ParamDef* parseParamList();
+	ParamDef* parseParameter();
+
+
+	NodeList* parseDeclarationList();
+
 	NodeList* ParseGlobalDecList();
 	NodeList* ParseGlobalStateList();
+	
 
-	NodeList* parseFunctionDef();
-	NodeList* parseFunction();
-	NodeList* parseIdentifier();
 	NodeList* parseDeclaration();
 	NodeList* parseParameterList();
-	NodeList* parseParameter();
+
 	NodeList* parseQualifier();
 	NodeList* parseBody();
-
 	NodeList* parseStateList();
+
+
 
 };
 
@@ -46,22 +56,15 @@ Parser::~Parser()
 
 }
 
-void Parser::setToken(Token t) {
-	toke = t;
-}
-Token Parser::getToken() {
-	return toke;
-}
-// *for testing purposes* //
-ostream& operator<<(ostream& os, Token &t)
-{
-	os << t.value << t.type << endl;
-	return os;
+//Function to use for outputing an error
+void throwError(string s, Token &t) {
+	throw "Line " + to_string(t.lineNum) + ": " + s;
 }
 RootNode* Parser::getRoot() {
 	return root;
 }
 
+//Rule1 ~~~~~~ Completed ~~~~~~~~~~
 void Parser::ParseFile() {
 	//Call Function Definitions
 	auto f = ParseFunctDefs();
@@ -69,166 +72,106 @@ void Parser::ParseFile() {
 	//auto s = ParseGlobalStateList();
 }
 
-NodeList* Parser::ParseFunctDefs() {			
-	setToken(lex.next());
-	NodeList* defs = new NodeList;		
+//Rule2&3 ~~~~~~ Completed ~~~~~~~~~~
+NodeList* Parser::ParseFunctDefs() {
+	auto t = lex.next();
+	NodeList* defs = new NodeList;
 	while (true)
 	{
-		if (getToken().value == "$$") {		
-			// no definitions
+		if (t.value == "$$") {
+			// no more definitions
 			return defs;
 		}
-		auto def = parseFunctionDef();	 
+		auto def = parseFunctionDef();
 		if (def) {
-			//adds function to nodelist
+			//adds function to nodelist if there is one
 			defs->add(def);
 		}
 		else
 		{
-			throw "There is an error";
+			//Error encountered;
+			break;
 		}
 	}
 }
-NodeList* Parser::parseFunctionDef() {
-	NodeList* def = new NodeList;
-	auto fun = parseFunction();
-	if (fun)
+
+//Rule4 ~~~~~~ Completed ~~~~~~~~~~
+FunctionDef* Parser::parseFunction() {
+	auto t = lex.next();
+	if (t.type != KEYWORD || t.value != "function")
 	{
-		def->add(fun);
-		return fun;
+		//error handling
+		throwError("Error, expected FUNCTION KEYWORD.", t);
 	}
-	else
+
+	//need to hold onto this token to place in Tree
+	auto id = lex.next();
+	if (t.type != IDENTIFIER)
 	{
-		throw "There is an error";
+		throwError("Error, expected IDENTIFIER.", t);
 	}
+
+	t = lex.next();
+	if (t.type != SEPERATOR || t.value != "(")
+	{
+		throwError("Error, expected an '('.", t);
+	}
+
+	//Paramlist will go until ')'
+	auto paramlist = parseParamList();
+
+	//DeclarationList will go until '{'
+	auto declist = parseDeclarationList();
+
+	auto body = parseBody();
+
+	return new FunctionDef(id, paramlist, declist, body);
 }
 
-NodeList* Parser::parseFunction() {
-	NodeList* fun = new NodeList;
+//Rule 5&6 ~~~~~~ Almost complete - how would you like to handle cases where 0 parameters are inside function id()?
+ParamDef* Parser::parseParamList() {
+	auto t = lex.next(); //is next token ), identifier, or empty?
+
+	//No parameters inside "function id()"
+	if (t.value == ")")
+		return;
+	else
+		//something other than ')' which means it *could* be parameter(s) or something illegal
+		auto param = parseParameter();
+}
+
+//Rule 10&11 ~~~ Must complete NEXT
+NodeList* parseDeclarationList() {
 	
-	//function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>
-	if (getToken().value == "function")
+}
+// Rule 7
+ParamDef* Parser::parseParameter() {
+	auto id = lex.next();
+	
+	//check if single identifier or multiple identifiers ex: "identifier, identifier, identifier ..."
+	if (id.type == IDENTIFIER)
 	{
-		// <Identifier>
-		auto ident = parseIdentifier();
-		if (ident)
+		//check if next token is ","  *could* be multiple IDs (do we make a list of IDs or how would you like to handle this?)
+		while (auto t = lex.next().value == ",")
 		{
-			//  (
-			if (getToken().value == "(")
-			{
-				//<Opt Parameter List>
-				auto parList = parseParameterList();
-				if (parList) {  // | NULL ?
-					// )
-					if (getToken().value == ")") {
-						// <Opt Declaration List>
-						auto decList = parseDeclaration();
-						if (decList) {// or NULL?
-							//parseDecList();
-
-							//  <Body>
-							auto body = parseBody();						
-						}
-					}
-				}
-			}
+			//
 		}
-	}
-}
-NodeList* Parser::parseIdentifier() {
-	//this needs to be changed
-	if (getToken().type == IDENTIFIER)
-	{
-		//
-	}
-}
-NodeList* Parser::parseParameterList() {
-	NodeList* parList = new NodeList;
-
-	//only 1 NT child
-	auto par = parseParameter();
-	if (par)
-	{
-		parList->add(par);
-		return par;
 	}
 	else
-	{
-		throw "There is an error";
-	}
-}
-NodeList* Parser::parseParameter() {
-	NodeList* par = new NodeList;
-	
-	auto qual = parseQualifier();
+		throwError("illegal parameter definition, expected IDENTIFIER", id);
 
-	if (qual)
+	auto t = lex.next();
+	if (t.type != SEPERATOR || t.value != ":")
 	{
-		par->add(qual);
-		return qual;
+		throwError("error, expected TOKEN TYPE SEPARATOR, VALUE ':'", t);
+	}
+
+	auto t = lex.next();
+	//expects "integer", "boolean", or "real"
+	if (t.type == KEYWORD && (t.value == "integer" || t.value == "boolean" || t.value == "real"))
+	{
+		//return new ParamDef(t, ids);
 	}
 	else
-	{
-		throw "There is an error";
-	}
+		throwError("error, expected TOKEN TYPE KEYWORD, VALUE integer, boolean, or real");
 }
-NodeList* Parser::parseQualifier() {
-	NodeList* qual = new NodeList;
-	auto stateList = parseStateList();
-
-	if (stateList)
-	{
-		qual->add(stateList);
-		return stateList;
-	}
-	else
-	{
-		throw "There is an error";
-	}
-}
-NodeList* Parser::parseBody() {
-	NodeList* body = new NodeList;
-	if (getToken().value == "{")
-	{
-		auto stateList = parseStateList();
-		if (getToken().value == "}")
-			return body;
-	}
-}
-NodeList* Parser::parseStateList() {
-	NodeList* stateList = new NodeList;
-	//auto state = parseState();
-
-
-	return stateList;
-	
-}
-
-
-//************** Declaration List
-/*NodeList* Parser::ParseGlobalDecList() {
-	setToken(lex.next());
-	NodeList* decList = new NodeList;
-	while (true)
-	{
-		if (getToken().value == "$$") {
-			// no declarations
-			return decList;
-		}
-		auto dec = parseDeclaration();
-		if (dec) {
-			//adds function to nodelist
-			cout << getToken().value;
-			decList->add(dec);
-		}
-		else
-		{
-			throw "There is an error";
-		}
-	}
-}
-NodeList* Parser::parseDeclaration()
-{
-	NodeList* dec = new NodeList;
-	return dec;
-} */
