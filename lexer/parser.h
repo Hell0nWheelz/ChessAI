@@ -81,7 +81,7 @@ NodeList* Parser::ParseFunctDefs() {
 		auto def = parseFunctionDef();	 
 		if (def) {
 			//adds function to nodelist
-			cout << getToken().value;
+			//cout << getToken().value;
 			defs->add(def);
 		}
 		else
@@ -105,18 +105,30 @@ NodeList* Parser::parseFunctionDef() {
 }
 NodeList* Parser::parseFunction() {
 	NodeList* fun = new NodeList;
-	auto ident = parseIdentifier();
-	auto parList = parseParameterList();
-	auto decList = parseDeclaration();
-	auto body = parseBody();
-	if (ident)
+	
+	if (getToken().value == "function")
 	{
-		fun->add(ident);
-		return fun;
-	}
-	else
-	{
-		throw "There is an error";
+		auto ident = parseIdentifier();
+		if (ident)
+		{
+			if (getToken().value == "(")
+			{
+				auto parList = parseParameterList();
+				if (parList)
+				{
+					auto decList = parseDeclaration();
+					if (getToken().value == ")")
+					{
+						auto body = parseBody();
+						fun->add(ident);
+						return fun;
+					}
+					else {
+						throw "There is an error";
+					}
+				}
+			}
+		}
 	}
 }
 NodeList* Parser::parseIdentifier() {
