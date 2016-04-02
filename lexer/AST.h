@@ -83,8 +83,6 @@ private:
 };
 
 class If : public Node {
-public:
-	If(Condition* cond, NodeList* ibody, NodeList* ebody) : condition(cond), ifbody(ibody), elsebody(ebody) {}
 	Condition* condition;
 	NodeList* ifbody;
 	NodeList* elsebody;
