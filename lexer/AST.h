@@ -44,7 +44,14 @@ class RootNode : public Node {
 	NodeList *statements;
 };
 
+
+//~~~~ Completed ~~~~~~
 class FunctionDef : public Node {
+public:
+	FunctionDef(Token id, NodeList* params, NodeList* declarations, NodeList* body)
+		//Default Constructor Syntax
+		: funcID(id), params(params), decls(declarations), body(body) { }
+private:
 	Token funcID;
 	NodeList *params;
 	NodeList *decls;

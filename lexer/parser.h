@@ -1,6 +1,9 @@
 #include <vector>
+#include <iostream>
 #include "lexer.h"
 #include "AST.h"
+
+using namespace std;
 
 //~~~~~~~~~~ Things To Do ~~~~~~~~~~~
 //Add Functions for each rule
@@ -18,26 +21,35 @@ public:
 	RootNode* getRoot();
 	
 	friend ostream& operator<< (ostream& os, Token &t);
-	void setToken(Token t);
-	Token getToken();
 
-private:
+//private:
+	void throwError(string s, Token &t);
+
 	RootNode* root;
-	Token toke;
+
 	NodeList* ParseFunctDefs();
+
+	FunctionDef* parseFunction();
+
+	NodeList* parseParamList();
+
+	NodeList* parseDeclarationList();
+
+
+	
 	NodeList* ParseGlobalDecList();
 	NodeList* ParseGlobalStateList();
-
-	NodeList* parseFunctionDef();
-	NodeList* parseFunction();
+	FunctionDef* parseFunctionDef();
+	
 	NodeList* parseIdentifier();
 	NodeList* parseDeclaration();
 	NodeList* parseParameterList();
 	NodeList* parseParameter();
 	NodeList* parseQualifier();
 	NodeList* parseBody();
-
 	NodeList* parseStateList();
+
+
 
 };
 
@@ -46,22 +58,24 @@ Parser::~Parser()
 
 }
 
-void Parser::setToken(Token t) {
-	toke = t;
+
+//Function to use for outputing an error
+void throwError(string s, Token &t) {
+	throw "Line " + to_string(t.lineNum) + ": " + s;
 }
-Token Parser::getToken() {
-	return toke;
-}
+
 // *for testing purposes* //
 ostream& operator<<(ostream& os, Token &t)
 {
 	os << t.value << t.type << endl;
 	return os;
 }
+
 RootNode* Parser::getRoot() {
 	return root;
 }
 
+//Rule1 ~~~~~~ Completed ~~~~~~~~~~
 void Parser::ParseFile() {
 	//Call Function Definitions
 	auto f = ParseFunctDefs();
@@ -69,41 +83,73 @@ void Parser::ParseFile() {
 	//auto s = ParseGlobalStateList();
 }
 
+//Rule2&3 ~~~~~~ Completed ~~~~~~~~~~
 NodeList* Parser::ParseFunctDefs() {			
-	setToken(lex.next());
-	NodeList* defs = new NodeList;		
+	auto t = lex.next();
+	NodeList* defs = new NodeList;
 	while (true)
 	{
-		if (getToken().value == "$$") {		
-			// no definitions
+		if (t.value == "$$") {		
+			// no more definitions
 			return defs;
 		}
 		auto def = parseFunctionDef();	 
 		if (def) {
-			//adds function to nodelist
-			cout << getToken().value;
+			//adds function to nodelist if there is one
 			defs->add(def);
 		}
 		else
-		{
-			throw "There is an error";
+		{	
+			//Error encountered;
+			break;
 		}
 	}
 }
-NodeList* Parser::parseFunctionDef() {
-	NodeList* def = new NodeList;
-	auto fun = parseFunction();
-	if (fun)
+
+//Rule4 ~~~~~~ Completed ~~~~~~~~~~
+FunctionDef* Parser::parseFunction() {
+	auto t = lex.next();
+	if (t.type != KEYWORD || t.value != "function")
 	{
-		def->add(fun);
-		return fun;
+		//error handling
+		throwError("Error, expected FUNCTION KEYWORD.", t);
 	}
-	else
+
+	//need to hold onto this token to place in Tree
+	auto id = lex.next();
+	if (t.type != IDENTIFIER)
 	{
-		throw "There is an error";
+		throwError("Error, expected IDENTIFIER.", t);
 	}
+
+	t = lex.next();
+	if (t.type != SEPERATOR || t.value != "(")
+	{
+		throwError("Error, expected an '('.", t);
+	}
+
+	//Paramlist will go until ')'
+	auto paramlist = parseParamList();
+
+	//DeclarationList will go until '{'
+	auto declist = parseDeclarationList();
+
+	auto body = parseBody();
+	
+	return new FunctionDef( id, paramlist, declist, body );
 }
-NodeList* Parser::parseFunction() {
+
+//Rule 5&6 ~~~ Must complete NEXT
+NodeList* parseParamList() {
+
+}
+
+//Rule 10&11 ~~~ Must complete NEXT
+NodeList* parseDeclarationList() {
+
+}
+
+/*NodeList* Parser::parseFunction() {
 	NodeList* fun = new NodeList;
 	auto ident = parseIdentifier();
 	auto parList = parseParameterList();
@@ -118,7 +164,7 @@ NodeList* Parser::parseFunction() {
 	{
 		throw "There is an error";
 	}
-}
+}*/
 NodeList* Parser::parseIdentifier() {
 	//this needs to be changed
 	NodeList* ident = new NodeList;
