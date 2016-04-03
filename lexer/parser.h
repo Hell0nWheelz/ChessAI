@@ -407,4 +407,15 @@ NodeList* Parser::parseWhile() {
 
 	//return new While(cond, body);
 }
+ // R23 ~~~~ Incomplete 
+Condition* Parser::parseCondition() {
+	auto express = parseExpression();
+	auto t = lex.next();
+	if (t.value != "=" || t.value != "/=" || t.value != ">" || t.value != "<" || t.value != "=>" || t.value != "<=")
+	{
+		throwError("error, expected relational operator token value: = or /= or > or < or => or <=", t);
+	}
+
+	//return new Condition(t, left, right);
+}
 }
