@@ -418,4 +418,13 @@ Condition* Parser::parseCondition() {
 
 	//return new Condition(t, left, right);
 }
+ // R24 ~~ (Do we need this?)
+NodeList* Parser::parseRelop() {
+	auto t = lex.next();
+	if (t.value != "=" || t.value != "/=" || t.value != ">" || t.value != "<" || t.value != "=>" || t.value != "<=")
+	{
+		throwError("error, expected relational operator token value: = or /= or > or < or => or <=", t);
+	}
+	// return
+}
 }
