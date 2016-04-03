@@ -221,6 +221,28 @@ Declaration* Parser::parseDeclaration() {
 
 	//return new Declaration(qual, ids);
 }
+// Rule 13 ~~~~ Incomplete ( Needs work to handle IDs )
+NodeList* Parser::parseIDs() {
+	auto id = lex.next();
+
+	L1:
+	if (id.type != IDENTIFIER)
+	{
+		throwError("error, expected TOKEN TYPE IDENTIFIER", id);
+	}
+
+	// check for multiple IDs
+	auto t = lex.next();
+
+	if (t.value == ",")
+	{
+		//we have "" <Identifier>, ""   *possible* <IDS>
+		goto L1;
+	}
+	else
+		//we have <Identifier>, <SOMETHING ILLEGAL>
+		throwError("error, expected TOKEN TYPE IDENTIFIER", id);
+}
 	{
 		//return new ParamDef(t, ids);
 	}
