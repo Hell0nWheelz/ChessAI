@@ -249,6 +249,18 @@ NodeList* Parser::parseStateList() {
 	auto state = parseStatement();
 
 }
+ // Rule 15 ~~~~~~ INCOMPLETE
+NodeList* Parser::parseStatement() {
+	/* 
+	auto compound = parseCompound();
+	auto assign = parseAssign();
+	auto iff = parseIf();
+	auto ret = parseReturn();
+	auto write = parseWrite();
+	auto read = parseRead();
+	auto whil = parseWhile();
+	*/
+}
 	{
 		//return new ParamDef(t, ids);
 	}
