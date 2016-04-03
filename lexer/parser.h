@@ -366,4 +366,25 @@ NodeList* Parser::parseWrite() {
 	if (t.value != ";")
 		throwError("error, expected token value \";\"", t);
 }
+ // R21
+NodeList* Parser::parseRead() {
+	auto t = lex.next();
+	if (t.value != "scanf")
+		throwError("error, expected token value \"scanf\"", t);
+
+	auto t = lex.next();
+	if (t.value != "(")
+		throwError("error, expected token value \"(\"", t);
+
+	auto ids = parseIDs();
+
+	auto t = lex.next();
+	if (t.value != ")")
+		throwError("error, expected token value \")\"", t);
+
+	auto t = lex.next();
+	if (t.value != ";")
+		throwError("error, expected token value \";\"", t);
+	// return new Read(ids);
+}
 }
