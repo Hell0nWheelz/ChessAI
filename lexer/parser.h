@@ -427,4 +427,10 @@ NodeList* Parser::parseRelop() {
 	}
 	// return
 }
+// ~~~~~~ 
+//R25 ~~~ <Expression>-> <Term> <Expression2>
+NodeList* Parser::parseExpression() {
+	auto term = parseTerm();
+	auto term2 = parseTerm2();
+}
 }
