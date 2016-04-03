@@ -331,6 +331,16 @@ If* Parser::parseIf2() {
 
 	// return new If(cond, ifbody, elsebody)
 }
+ // ~~~~ INCOMPLETE
+ // R19
+NodeList* Parser::parseReturn() {
+	auto t = lex.next();
+	if (t.value != "return")
+		throwError("error, expected token value \"return\"", t);
+	auto t = lex.next();
+
+	 //check if return; or return <Expression> ;
+	if (t.value == ";")
 	{
 		//return new ParamDef(t, ids);
 	}
