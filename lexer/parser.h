@@ -314,6 +314,23 @@ If* Parser::parseIf() {
 	auto statement = parseStatement();
 	auto if2 = parseIf2();
 }
+ // ~~~~Incomplete - (How do we return if this no longer calls condition due to factorization?)
+ // R18b If2=> endif | else <Statement> endif 
+If* Parser::parseIf2() {
+	auto t = lex.next();
+	if (t.value != "endif" | t.value != "else")
+	{
+		throwError("error, expected token value \"endif\" or \"else\"", t);
+	}
+	auto statement = parseStatement();
+	auto t = lex.next();
+	if (t.value != "endif")
+	{
+		throwError("error, expected token value \"endif\"", t);
+	}
+
+	// return new If(cond, ifbody, elsebody)
+}
 	{
 		//return new ParamDef(t, ids);
 	}
