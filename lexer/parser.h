@@ -243,6 +243,12 @@ NodeList* Parser::parseIDs() {
 		//we have <Identifier>, <SOMETHING ILLEGAL>
 		throwError("error, expected TOKEN TYPE IDENTIFIER", id);
 }
+ // Rule 14 ~~~~~~~ INCOMPLETE
+NodeList* Parser::parseStateList() {
+	
+	auto state = parseStatement();
+
+}
 	{
 		//return new ParamDef(t, ids);
 	}
