@@ -271,6 +271,24 @@ NodeList* Parser::parseCompound() {
 	if (t.value != "}")
 		throwError("error, expected token value \"}\"", t);
 }
+ // Rule 17 ~~~~ COMPLETE ~~~~~
+Assign* Parser::parseAssign() {
+	
+	auto id = lex.next();
+	//is token identifier?
+	if (id.type != IDENTIFIER)
+	{
+		throwError("error, expected TOKEN TYPE IDENTIFIER", id);
+	}
+	auto t = lex.next();
+	if (t.value != ":=") 
+	{
+		throwError("error, expected TOKEN VALUE \" := \"", t);
+	}
+	auto express = parseExpression();
+
+	return new Assign(id, express);
+}
 	{
 		//return new ParamDef(t, ids);
 	}
