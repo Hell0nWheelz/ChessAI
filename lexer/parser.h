@@ -471,4 +471,38 @@ NodeList* Parser::parseFactor() {
 		auto prim = parsePrimary();
 	}
 }
+ // ~~~ INCOMPLETE ~~~~
+ // R28 <Primary>=> <Identifier> | <Integer> | <Identifier> <IDs> | ( <Expression) | <Real> | true | false
+NodeList* Parser::parsePrimary() {
+	
+	auto t = lex.next();
+	switch (t.type){
+	case 0:
+		//check if 1 or multiple identifiers
+	case 1:
+		//check if KEYWORD is "true" or "false"
+		if (t.value == "true" || t.value == "false")
+		{
+			//return keyword
+		}
+	case 2:
+		//parse Real
+	case 3:
+		// parse Integer
+	case 5:
+		//check if SEPARATOR is '('
+		if (t.value == "(")
+		{
+			//check if ( <Expression> )
+			auto express = parseExpression();
+			auto tok = lex.next();
+
+			if (tok.value == ")")
+			{
+				//return 
+			}
+		}
+	default:
+		throwError("error, expected IDENTIFIER or integer or ( or real or true or false", t);
+	}
 }
