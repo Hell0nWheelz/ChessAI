@@ -185,7 +185,6 @@ ParamDef* Parser::parseParameter() {
 		//check if next token is ","  *could* be multiple IDs (do we make a list of IDs or how would you like to handle this?)
 		while (auto t = lex.next().value == ",")
 		{
-			//
 		}
 	}
 	else
@@ -200,6 +199,21 @@ ParamDef* Parser::parseParameter() {
 	auto t = lex.next();
 	//expects "integer", "boolean", or "real"
 	if (t.type == KEYWORD && (t.value == "integer" || t.value == "boolean" || t.value == "real"))
+// Rule 9 ~~~ COMPLETED
+NodeList* Parser::parseBody() {
+	auto t = lex.next();
+	if (t.value != "{")
+	{
+		throwError("error, expected TOKEN VALUE '{'", t);
+	}
+	auto statelist = ParseGlobalStateList();
+
+	auto t = lex.next();
+	if (t.value != "}")
+	{
+		throwError("error, expected TOKEN VALUE '{'", t);
+	}
+}
 	{
 		//return new ParamDef(t, ids);
 	}
