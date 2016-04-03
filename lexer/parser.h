@@ -450,4 +450,14 @@ NodeList* Parser::parseTerm() {
 	auto factor = parseFactor();
 	auto term2 = parseTerm2();
 }
+ // ~~~~ COMPLETE ~~~~
+ // R26b ~~~ <Term2>-> * <Factor><Term2> | / <Factor><Term2>
+NodeList* Parser::parseTerm2() {
+	auto t = lex.next();
+	if (t.type != OPERATOR || t.value != "*" || t.value != "/")
+	{
+		throwError("error, expected type OPERATOR, value * or /", t);
+	}
+	auto fact = parseFactor();
+}
 }
