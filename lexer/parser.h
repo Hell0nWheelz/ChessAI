@@ -289,6 +289,31 @@ Assign* Parser::parseAssign() {
 
 	return new Assign(id, express);
 }
+ // ~~~~ Incomplete (How do we deal with left factorization regarding the returns?)
+ // R18 If=> if ( <Condition> ) <Statement> <If2>
+If* Parser::parseIf() {
+	auto t = lex.next();
+	if (t.value != "if")
+	{	
+		throwError("error, expected token type KEYWORD, value \"if\"", t);
+	}
+
+	auto t = lex.next();
+	if (t.value != "(") 
+	{
+		throwError("error, expected token type SEPARATOR, value (", t);
+	}
+
+	auto cond = parseCondition();
+
+	auto t = lex.next();
+	if (t.value != ")")
+	{
+		throwError("error, expected token type SEPARATOR, value (", t);
+	}
+	auto statement = parseStatement();
+	auto if2 = parseIf2();
+}
 	{
 		//return new ParamDef(t, ids);
 	}
