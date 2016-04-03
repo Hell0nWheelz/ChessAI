@@ -261,6 +261,16 @@ NodeList* Parser::parseStatement() {
 	auto whil = parseWhile();
 	*/
 }
+ // Rule 16 ~~~~~~~
+NodeList* Parser::parseCompound() {
+	auto t = lex.next();
+	if (t.value != "{")
+		throwError("error, expected token value \"{\"", t);
+	auto stateList = parseStateList();
+	auto t = lex.next();
+	if (t.value != "}")
+		throwError("error, expected token value \"}\"", t);
+}
 	{
 		//return new ParamDef(t, ids);
 	}
