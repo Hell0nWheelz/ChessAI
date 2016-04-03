@@ -460,4 +460,15 @@ NodeList* Parser::parseTerm2() {
 	}
 	auto fact = parseFactor();
 }
+ // ~~~ INCOMPLETE ~~~~ 
+ // R27 ~~~ <Factor>-> - <Primary> | <Primary>
+NodeList* Parser::parseFactor() {
+	auto t = lex.next();
+	
+	//Doesn't have to go to '-'   (save token?)
+	if (t.value == "-")
+	{
+		auto prim = parsePrimary();
+	}
+}
 }
