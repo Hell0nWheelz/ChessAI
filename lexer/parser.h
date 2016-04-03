@@ -214,6 +214,13 @@ NodeList* Parser::parseBody() {
 		throwError("error, expected TOKEN VALUE '{'", t);
 	}
 }
+// Rule 12 ~~~~ Incomplete (We need to handle multiple IDs)
+Declaration* Parser::parseDeclaration() {
+	auto qual = parseQualifier();
+	auto ids = parseIDs();
+
+	//return new Declaration(qual, ids);
+}
 	{
 		//return new ParamDef(t, ids);
 	}
