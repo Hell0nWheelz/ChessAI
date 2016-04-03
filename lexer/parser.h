@@ -21,6 +21,37 @@ public:
 	RootNode* getRoot();
 
 	//private:
+	NodeList* ParseFunctDefs();			// R2&3
+	FunctionDef* parseFunctionDef();	// R3?
+	FunctionDef* parseFunction();		// R4?
+	ParamDef* parseParamList();			// R5&6?
+	NodeList* parseParameterList();		// R5&6
+	ParamDef* parseParameter();			// R7
+	NodeList* parseQualifier();			// R8
+	NodeList* parseBody();				// R9
+	NodeList* ParseGlobalDecList();		// R10?
+	NodeList* parseDeclarationList();	// R10&11
+	Declaration* parseDeclaration();	// R12
+	NodeList* parseIDs();				// R13
+	NodeList* ParseGlobalStateList();	// R14?
+	NodeList* parseStateList();			// R14?
+	NodeList* parseStatement();			// R15
+	NodeList* parseCompound();			// R16
+	Assign* parseAssign();				// R17
+	If* parseIf();						// R18
+	If* parseIf2();						// R18.b Left factorization
+	NodeList* parseReturn();			// R19
+	NodeList* parseWrite();				// R20
+	NodeList* parseRead();				// R21
+	NodeList* parseWhile();				// R22
+	Condition* parseCondition();		// R23
+	NodeList* parseRelop();				// R24 - (we don't actually need this?)
+	NodeList* parseExpression();		// R25
+	NodeList* parseExpression2();		// R25b Recursion (expression prime)
+	NodeList* parseTerm();				// R26
+	NodeList* parseTerm2();				// R26b Recursion (term prime)
+	NodeList* parseFactor();			// R27
+	NodeList* parsePrimary();			// R28
 	void throwError(string s, Token &t);
 
 	RootNode* root;
