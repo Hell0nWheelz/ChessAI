@@ -387,4 +387,24 @@ NodeList* Parser::parseRead() {
 		throwError("error, expected token value \";\"", t);
 	// return new Read(ids);
 }
+ // R22
+NodeList* Parser::parseWhile() {
+	auto t = lex.next();
+	if (t.value != "while")
+		throwError("error, expected token value \"while\"", t);
+
+	auto t = lex.next();
+	if (t.value != "(")
+		throwError("error, expected token value \"(\"", t);
+
+	auto cond = parseCondition();
+
+	auto t = lex.next();
+	if (t.value != ")")
+		throwError("error, expected token value \")\"", t);
+
+	auto statement = parseStatement();
+
+	//return new While(cond, body);
+}
 }
