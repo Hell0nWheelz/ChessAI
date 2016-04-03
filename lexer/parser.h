@@ -346,4 +346,24 @@ NodeList* Parser::parseReturn() {
 	}
 	else
 		throwError("error, expected TOKEN TYPE KEYWORD, VALUE integer, boolean, or real");
+ // R20
+NodeList* Parser::parseWrite() {
+	auto t = lex.next();
+	if (t.value != "printf")
+		throwError("error, expected token value \"printf\"", t);
+
+	auto t = lex.next();
+	if (t.value != "(")
+		throwError("error, expected token value \"(\"", t);
+
+	auto express = parseExpression();
+
+	auto t = lex.next();
+	if (t.value != ")")
+		throwError("error, expected token value \")\"", t);
+
+	auto t = lex.next();
+	if (t.value != ";")
+		throwError("error, expected token value \";\"", t);
+}
 }
