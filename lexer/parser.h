@@ -17,69 +17,44 @@ class Parser
 public:
 	Parser(string filename) : lex(filename) {};
 	~Parser();
-	void ParseFile();
+	void ParseFile();			// R1
 	RootNode* getRoot();
 
-	//private:
-	NodeList* ParseFunctDefs();			// R2&3
+	NodeList* ParseFunctDefs();		// R2&3
 	FunctionDef* parseFunctionDef();	// R3?
 	FunctionDef* parseFunction();		// R4?
-	ParamDef* parseParamList();			// R5&6?
+	ParamDef* parseParamList();		// R5&6?
 	NodeList* parseParameterList();		// R5&6
-	ParamDef* parseParameter();			// R7
-	NodeList* parseQualifier();			// R8
-	NodeList* parseBody();				// R9
+	ParamDef* parseParameter();		// R7
+	NodeList* parseQualifier();		// R8
+	NodeList* parseBody();			// R9
 	NodeList* ParseGlobalDecList();		// R10?
 	NodeList* parseDeclarationList();	// R10&11
 	Declaration* parseDeclaration();	// R12
-	NodeList* parseIDs();				// R13
+	NodeList* parseIDs();			// R13
 	NodeList* ParseGlobalStateList();	// R14?
-	NodeList* parseStateList();			// R14?
-	NodeList* parseStatement();			// R15
-	NodeList* parseCompound();			// R16
-	Assign* parseAssign();				// R17
-	If* parseIf();						// R18
-	If* parseIf2();						// R18.b Left factorization
-	NodeList* parseReturn();			// R19
-	NodeList* parseWrite();				// R20
-	NodeList* parseRead();				// R21
-	NodeList* parseWhile();				// R22
+	NodeList* parseStateList();		// R14?
+	NodeList* parseStatement();		// R15
+	NodeList* parseCompound();		// R16
+	Assign* parseAssign();			// R17
+	If* parseIf();				// R18
+	If* parseIf2();				// R18.b Left factorization
+	NodeList* parseReturn();		// R19
+	NodeList* parseWrite();			// R20
+	NodeList* parseRead();			// R21
+	NodeList* parseWhile();			// R22
 	Condition* parseCondition();		// R23
-	NodeList* parseRelop();				// R24 - (we don't actually need this?)
+	NodeList* parseRelop();			// R24 - (we don't actually need this?)
 	NodeList* parseExpression();		// R25
 	NodeList* parseExpression2();		// R25b Recursion (expression prime)
-	NodeList* parseTerm();				// R26
-	NodeList* parseTerm2();				// R26b Recursion (term prime)
-	NodeList* parseFactor();			// R27
-	NodeList* parsePrimary();			// R28
+	NodeList* parseTerm();			// R26
+	NodeList* parseTerm2();			// R26b Recursion (term prime)
+	NodeList* parseFactor();		// R27
+	NodeList* parsePrimary();		// R28
+
+private:
 	void throwError(string s, Token &t);
-
 	RootNode* root;
-
-	NodeList* ParseFunctDefs();
-
-	FunctionDef* parseFunction();
-	FunctionDef* parseFunctionDef();
-
-	ParamDef* parseParamList();
-	ParamDef* parseParameter();
-
-
-	NodeList* parseDeclarationList();
-
-	NodeList* ParseGlobalDecList();
-	NodeList* ParseGlobalStateList();
-	
-
-	NodeList* parseDeclaration();
-	NodeList* parseParameterList();
-
-	NodeList* parseQualifier();
-	NodeList* parseBody();
-	NodeList* parseStateList();
-
-
-
 };
 
 Parser::~Parser()
@@ -95,15 +70,15 @@ RootNode* Parser::getRoot() {
 	return root;
 }
 
-//Rule1 ~~~~~~ Completed ~~~~~~~~~~
+// Rule 1 ~~~~~~ Completed ~~~~~~~~~~
 void Parser::ParseFile() {
 	//Call Function Definitions
 	auto f = ParseFunctDefs();
-	//auto d = ParseGlobalDecList();
-	//auto s = ParseGlobalStateList();
+	auto d = ParseGlobalDecList();
+	auto s = ParseGlobalStateList();
 }
 
-//Rule2&3 ~~~~~~ Completed ~~~~~~~~~~
+// Rule 2&3 ~~~~~~ Completed ~~~~~~~~~~
 NodeList* Parser::ParseFunctDefs() {
 	auto t = lex.next();
 	NodeList* defs = new NodeList;
@@ -126,7 +101,7 @@ NodeList* Parser::ParseFunctDefs() {
 	}
 }
 
-//Rule4 ~~~~~~ Completed ~~~~~~~~~~
+// Rule 4 ~~~~~~ Completed ~~~~~~~~~~
 FunctionDef* Parser::parseFunction() {
 	auto t = lex.next();
 	if (t.type != KEYWORD || t.value != "function")
@@ -158,10 +133,9 @@ FunctionDef* Parser::parseFunction() {
 
 	return new FunctionDef(id, paramlist, declist, body);
 }
-
-//Rule 5&6 ~~~~~~ Almost complete - how would you like to handle cases where 0 parameters are inside function id()?
+//Rule 5&6 ~~~~~~ Almost complete - needs to check for 0 parameters inside of "function()"
 ParamDef* Parser::parseParamList() {
-	auto t = lex.next(); //is next token ), identifier, or empty?
+	auto t = lex.next(); //is next token )?, identifier?, or empty?
 
 	//No parameters inside "function id()"
 	if (t.value == ")")
@@ -170,21 +144,17 @@ ParamDef* Parser::parseParamList() {
 		//something other than ')' which means it *could* be parameter(s) or something illegal
 		auto param = parseParameter();
 }
-
-//Rule 10&11 ~~~ Must complete NEXT
-NodeList* parseDeclarationList() {
-	
-}
-// Rule 7
+// Rule 7 ~~ Almost complete - needs to handle parsing IDs  ( <identifier>, <IDs> )
 ParamDef* Parser::parseParameter() {
 	auto id = lex.next();
-	
+
 	//check if single identifier or multiple identifiers ex: "identifier, identifier, identifier ..."
 	if (id.type == IDENTIFIER)
 	{
-		//check if next token is ","  *could* be multiple IDs (do we make a list of IDs or how would you like to handle this?)
+		//check if next token is ","  *could* be multiple IDs (do we make a list of IDs for the tree or how would you like to handle this?)
 		while (auto t = lex.next().value == ",")
 		{
+			//recursive call to parseParameter to loop list of IDS
 		}
 	}
 	else
@@ -196,9 +166,21 @@ ParamDef* Parser::parseParameter() {
 		throwError("error, expected TOKEN TYPE SEPARATOR, VALUE ':'", t);
 	}
 
+	auto qual = parseQualifier();
+	return new ParamDef(qual, id);
+}
+// Rule 8 ~~~~ Needs to handle IDs
+NodeList* Parser::parseQualifier() {
 	auto t = lex.next();
+
 	//expects "integer", "boolean", or "real"
-	if (t.type == KEYWORD && (t.value == "integer" || t.value == "boolean" || t.value == "real"))
+	if (t.type != KEYWORD && (t.value != "integer" || t.value != "boolean" || t.value != "real"))
+	{
+		throwError("error, expected TOKEN TYPE KEYWORD, VALUE integer, boolean, or real", t);
+	}
+
+	//add to IDs list?
+}
 // Rule 9 ~~~ COMPLETED
 NodeList* Parser::parseBody() {
 	auto t = lex.next();
@@ -214,6 +196,11 @@ NodeList* Parser::parseBody() {
 		throwError("error, expected TOKEN VALUE '{'", t);
 	}
 }
+
+//Rule 10&11
+NodeList* Parser::parseDeclarationList() {
+
+}
 // Rule 12 ~~~~ Incomplete (We need to handle multiple IDs)
 Declaration* Parser::parseDeclaration() {
 	auto qual = parseQualifier();
@@ -221,6 +208,7 @@ Declaration* Parser::parseDeclaration() {
 
 	//return new Declaration(qual, ids);
 }
+
 // Rule 13 ~~~~ Incomplete ( Needs work to handle IDs )
 NodeList* Parser::parseIDs() {
 	auto id = lex.next();
@@ -314,6 +302,7 @@ If* Parser::parseIf() {
 	auto statement = parseStatement();
 	auto if2 = parseIf2();
 }
+
  // ~~~~Incomplete - (How do we return if this no longer calls condition due to factorization?)
  // R18b If2=> endif | else <Statement> endif 
 If* Parser::parseIf2() {
@@ -342,10 +331,11 @@ NodeList* Parser::parseReturn() {
 	 //check if return; or return <Expression> ;
 	if (t.value == ";")
 	{
-		//return new ParamDef(t, ids);
+		// return
 	}
 	else
-		throwError("error, expected TOKEN TYPE KEYWORD, VALUE integer, boolean, or real");
+		auto express = parseExpression();
+}
  // R20
 NodeList* Parser::parseWrite() {
 	auto t = lex.next();
@@ -444,12 +434,14 @@ NodeList* Parser::parseExpression2() {
 	auto term = parseTerm();
 	auto express = parseExpression2();
 }
+
  // ~~~~ COMPLETE ~~~~
  // R26 ~~~ <Term>-> <Factor> <Term2>
 NodeList* Parser::parseTerm() {
 	auto factor = parseFactor();
 	auto term2 = parseTerm2();
 }
+
  // ~~~~ COMPLETE ~~~~
  // R26b ~~~ <Term2>-> * <Factor><Term2> | / <Factor><Term2>
 NodeList* Parser::parseTerm2() {
@@ -460,6 +452,7 @@ NodeList* Parser::parseTerm2() {
 	}
 	auto fact = parseFactor();
 }
+
  // ~~~ INCOMPLETE ~~~~ 
  // R27 ~~~ <Factor>-> - <Primary> | <Primary>
 NodeList* Parser::parseFactor() {
@@ -471,6 +464,7 @@ NodeList* Parser::parseFactor() {
 		auto prim = parsePrimary();
 	}
 }
+
  // ~~~ INCOMPLETE ~~~~
  // R28 <Primary>=> <Identifier> | <Integer> | <Identifier> <IDs> | ( <Expression) | <Real> | true | false
 NodeList* Parser::parsePrimary() {
