@@ -433,4 +433,15 @@ NodeList* Parser::parseExpression() {
 	auto term = parseTerm();
 	auto term2 = parseTerm2();
 }
+ // 
+ // R25b ~~~ <Expression2>-> + <Term> <Expression2> | - <Term> <Expression2>
+NodeList* Parser::parseExpression2() {
+	auto t = lex.next();
+	if (t.type != OPERATOR || t.value != "+" || t.value != "-")
+	{
+		throwError("error, expected TYPE OPERATOR, VALUE + OR -", t);
+	}
+	auto term = parseTerm();
+	auto express = parseExpression2();
+}
 }
