@@ -444,4 +444,10 @@ NodeList* Parser::parseExpression2() {
 	auto term = parseTerm();
 	auto express = parseExpression2();
 }
+ // ~~~~ COMPLETE ~~~~
+ // R26 ~~~ <Term>-> <Factor> <Term2>
+NodeList* Parser::parseTerm() {
+	auto factor = parseFactor();
+	auto term2 = parseTerm2();
+}
 }
