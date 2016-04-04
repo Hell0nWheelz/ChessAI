@@ -47,17 +47,16 @@ class RootNode : public Node {
 //~~~~ Completed ~~~~~~
 class FunctionDef : public Node {
 public:
-	//changed 2nd parameter to ParamDef* type
-	FunctionDef(Token id, ParamDef* params, NodeList* declarations, NodeList* body)
+	FunctionDef(Token id, NodeList* params, NodeList* declarations, NodeList* body)
 		//Default Constructor Syntax
 		: funcID(id), params(params), decls(declarations), body(body) { } 
 private:
 	Token funcID;
-	ParamDef *params; //should this be ParamDef instead of NodeList?
+	NodeList *params; 
 	NodeList *decls;
 	NodeList *body;
 };
-//~~~~ 
+
 class ParamDef : public Node {
 public:
 	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
