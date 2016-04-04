@@ -21,8 +21,8 @@ int main() {
 	ofstream file;
 
 	cout << "Enter in the name of your test file or enter in [Gen] to generate a sample file: ";
-	cin >> infile;
-
+	//cin >> infile;
+	infile = "Gen";
 
 	if (infile == "Gen") {
 		infile = generateSampleFile();
@@ -53,8 +53,8 @@ int main() {
 		file.close();
 
 		cout << "Lexer complete! Press a key to continue... ";
-		cin.ignore();
-		pause = cin.get();
+		//cin.ignore();
+		//pause = cin.get();
 	}
 	else {
 		cout << "Unable to open " << outfile << endl;

@@ -94,11 +94,11 @@ private:
 
 class If : public Node {
 public:
-	If(Condition* cond, NodeList* ibody, NodeList* ebody) : condition(cond), ifbody(ibody), elsebody(ebody) { }
+	If(Condition* cond, Node* istate, Node* estate) : condition(cond), ifstatement(istate), elsestatement(estate) { }
 private:
 	Condition* condition;
-	NodeList* ifbody;
-	NodeList* elsebody;
+	Node* ifstatement;
+	Node* elsestatement;
 };
 
 class Return : public Node {
@@ -141,8 +141,9 @@ private:
 
 class UrinaryExpression : public Node {
 public:
-	UrinaryExpression(Node* cent) : center(cent) {}
+	UrinaryExpression(Token t, Node* cent) : oper(t), center(cent) {}
 private:
+	Token oper;
 	Node* center;
 };
 
