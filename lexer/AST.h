@@ -39,6 +39,9 @@ private:
 };
 
 class RootNode : public Node {
+public:
+	RootNode(NodeList* f, NodeList* d, NodeList* s) : defs(f), decls(d), statements(s) { }
+private:
 	NodeList *defs; // would be null if not there
 	NodeList *decls;
 	NodeList *statements;

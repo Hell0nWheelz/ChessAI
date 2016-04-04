@@ -17,18 +17,14 @@ class Parser
 public:
 	Parser(string filename) : lex(filename) {};
 	~Parser();
-	
-	RootNode* getRoot();
 
 	//private:
 	bool print = true; //used for toggling printing on and off
 
 	void throwError(string s, Token &t);
 
-	RootNode* root;
-
 	//Start of Language Rule Functions
-	void parseFile();							// R1
+	RootNode* parseFile();							// R1
 
 	NodeList* parseFunctionDefs();				// R2&3
 
@@ -52,9 +48,10 @@ public:
 
 	NodeList* parseStatementList(string s);		// R14
 	
-	NodeList* parseStatement();					// R15
+	Node* parseStatement();						// R15
 
 	NodeList* parseCompound();					// R16
+
 	Assign* parseAssign();						// R17
 	If* parseIf();								// R18
 	If* parseIf2();								// R18.b Left factorization
@@ -82,16 +79,15 @@ Parser::~Parser()
 void throwError(string s, Token &t) {
 	throw "Found " + t.value + " on Line " + to_string(t.lineNum) + ": " + s;
 }
-RootNode* Parser::getRoot() {
-	return root;
-}
 
 // Rule 1 ~~~~~~ Completed ~~~~~~~~~~
-void Parser::parseFile() {
+RootNode* Parser::parseFile() {
 	//Call Function Definitions
 	auto f = parseFunctionDefs();
 	auto d = parseDeclarationList();
-	auto s = parseStatementList("&&");
+	auto s = parseStatementList("$$");
+	
+	return new RootNode(f, d, s);
 }
 
 // Rule 2&3 ~~~~~~ Completed ~~~~~~~~~~
@@ -129,7 +125,7 @@ FunctionDef* Parser::parseFunction() {
 	}
 
 	t = lex.next();
-	if (t.type != SEPERATOR || t.value != "(")
+	if (t.value != "(")
 	{
 		throwError("Error, expected an '('.", t);
 	}
@@ -193,12 +189,7 @@ NodeList* Parser::parseBody() {
 	{
 		throwError("Error, expected '{'.", t);
 	}
-	auto statelist = parseStatementList("}"); //expect a '}' at end of body
-	auto t = lex.next();
-	if (t.value != "}")
-	{
-		throwError("error, expected '}'.", t);
-	}
+	return parseStatementList("}"); //expect a '}' at end of body
 }
 
 // Rule 10&11 ~~~~~~ Completed ~~~~~~~~~~
@@ -266,9 +257,17 @@ NodeList* Parser::parseStatementList(string s) {
 	while (true)
 	{
 		if (t.value == s) {
-			if (t.type != eof && s == "&&")
+			if (t.value == "$$")
 			{
-				throwError("Error, expected end of file marker", t);
+				t = lex.next();
+			}
+			else
+			{
+				return statements;
+			}
+			if (t.type != eof && s == "$$")
+			{
+				throwError("Error, expected EOF MARKER.", t);
 			}
 			// no more statements <--------- END OF PROGRAM if t.value == $$
 			return statements;
@@ -281,47 +280,69 @@ NodeList* Parser::parseStatementList(string s) {
 	}
 }
 
- // Rule 15 
-NodeList* Parser::parseStatement() {
-	/* 
-	auto compound = parseCompound();
-	auto assign = parseAssign();
-	auto iff = parseIf();
-	auto ret = parseReturn();
-	auto write = parseWrite();
-	auto read = parseRead();
-	auto whil = parseWhile();
-	*/
+ // Rule 15 ~~~~~~ Completed ~~~~~~~~~~
+Node* Parser::parseStatement() {
+	auto t = lex.next();
+	if (t.value == "{") //Compound 
+	{
+		return parseCompound();
+	}
+	else if (t.type == IDENTIFIER) //Assign
+	{
+		return parseAssign();
+	}
+	else if (t.value == "if") //If
+	{
+		return parseIf();
+	}
+	else if (t.value == "return") //Return
+	{
+		return parseReturn();
+	}
+	else if (t.value == "printf") //Write
+	{
+		return parseWrite();
+	}
+	else if (t.value == "scanf") //Read
+	{
+		return parseRead();
+	}
+	else if (t.value == "while") //While
+	{
+		return parseWhile();
+	}
+	else
+	{
+		throwError("Error, expected starting token of a STATEMENT.", t);
+	}
 }
 
- // Rule 16 ~~~~~~~
+ // Rule 16 ~~~~~~ Completed ~~~~~~~~~~
 NodeList* Parser::parseCompound() {
 	auto t = lex.next();
-	if (t.value != "{")
-		throwError("error, expected token value \"{\"", t);
-	auto stateList = parseStateList();
-	auto t = lex.next();
-	if (t.value != "}")
-		throwError("error, expected token value \"}\"", t);
+	if (t.value != "{") {
+		throwError("Error, expected token value '{'.", t);
+	}
+	return parseStatementList("}");
 }
- // Rule 17 ~~~~ COMPLETE ~~~~~
+
+ // Rule 17 
 Assign* Parser::parseAssign() {
 	
 	auto id = lex.next();
-	//is token identifier?
 	if (id.type != IDENTIFIER)
 	{
-		throwError("error, expected TOKEN TYPE IDENTIFIER", id);
+		throwError("Error, expected IDENTIFIER.", id);
 	}
 	auto t = lex.next();
 	if (t.value != ":=") 
 	{
-		throwError("error, expected TOKEN VALUE \" := \"", t);
+		throwError("Error, expected ':='.", t);
 	}
 	auto express = parseExpression();
-
 	return new Assign(id, express);
 }
+
  // ~~~~ Incomplete (How do we deal with left factorization regarding the returns?)
  // R18 If=> if ( <Condition> ) <Statement> <If2>
 If* Parser::parseIf() {
@@ -347,6 +368,7 @@ If* Parser::parseIf() {
 	auto statement = parseStatement();
 	auto if2 = parseIf2();
 }
+
  // ~~~~Incomplete - (How do we return if this no longer calls condition due to factorization?)
  // R18b If2=> endif | else <Statement> endif 
 If* Parser::parseIf2() {
@@ -364,14 +386,14 @@ If* Parser::parseIf2() {
 
 	// return new If(cond, ifbody, elsebody)
 }
- // ~~~~ INCOMPLETE
- // R19
+
+ // R19 
 NodeList* Parser::parseReturn() {
 	auto t = lex.next();
-	if (t.value != "return")
-		throwError("error, expected token value \"return\"", t);
+	if (t.value != ";") {
+		throwError("Error, expected ';'.", t);
+	}
 	auto t = lex.next();
-
 	//check if return; or return <Expression> ;
 	if (t.value == ";")
 	{
@@ -401,27 +423,34 @@ NodeList* Parser::parseWrite() {
 	if (t.value != ";")
 		throwError("error, expected token value \";\"", t);
 }
+
  // R21
 NodeList* Parser::parseRead() {
 	auto t = lex.next();
+	Read*  read = new Read;
 	if (t.value != "scanf")
-		throwError("error, expected token value \"scanf\"", t);
-
-	auto t = lex.next();
-	if (t.value != "(")
-		throwError("error, expected token value \"(\"", t);
-
-	auto ids = parseIDs();
-
-	auto t = lex.next();
-	if (t.value != ")")
-		throwError("error, expected token value \")\"", t);
-
-	auto t = lex.next();
-	if (t.value != ";")
-		throwError("error, expected token value \";\"", t);
-	// return new Read(ids);
+	{
+		throwError("Error")
+	}
+	while (true)
+	{
+		if (t.value == s) {
+			if (t.type != eof && s == "&&")
+			{
+				throwError("Error, expected end of file marker", t);
+			}
+			// no more statements <--------- END OF PROGRAM if t.value == $$
+			return statements;
+		}
+		auto statement = parseStatement();
+		if (statement) {
+			//adds the statement to the list
+			statements->add(statement);
+		}
+	}
+	
 }
+
  // R22
 NodeList* Parser::parseWhile() {
 	auto t = lex.next();

@@ -64,6 +64,9 @@ int main() {
 		pause = cin.get();
 	}
 
+	Parser parse(infile);
+	auto root = parse.parseFile();
+
 	return 0;
 }
 
