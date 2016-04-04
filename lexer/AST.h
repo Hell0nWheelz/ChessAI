@@ -1,6 +1,5 @@
 #include <vector>
 #include <iostream>
-#include "lexer.h"
 
 //~~~~ To Do ~~~~~~~
 //Add constructors (pass null if empty)
@@ -15,8 +14,8 @@ public:
 	Node();
 	virtual ~Node();
 
-	virtual void print();
-	virtual void codeGen();
+	//virtual void print();
+	//virtual void codeGen();
 private:
 
 };
@@ -84,14 +83,22 @@ private:
 	Node* expression;
 };
 
+class Condition : public Node {
+public:
+	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
+private:
+	Token oper;
+	Node* left;
+	Node* right;
+};
+
 class If : public Node {
 public:
-	If(Condition* cond, NodeList* ibody, NodeList* ebody) : condition(cond), ifbody(ibody), elsebody(ebody) {}
-	Condition* condition;
+	If(Condition* cond, NodeList* ibody, NodeList* ebody) : condition(cond), ifbody(ibody), elsebody(ebody) { }
 private:
+	Condition* condition;
 	NodeList* ifbody;
 	NodeList* elsebody;
-
 };
 
 class Return : public Node {
@@ -121,15 +128,6 @@ public:
 private:
 	Condition* condition;
 	NodeList* body;
-};
-
-class Condition : public Node {
-public:
-	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
-private:
-	Token oper;
-	Node* left;
-	Node* right;
 };
 
 class BinaryExpression : public Node {

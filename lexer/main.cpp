@@ -52,10 +52,9 @@ int main() {
 
 		file.close();
 
-		cout << "Press a key to continue... ";
+		cout << "Lexer complete! Press a key to continue... ";
 		cin.ignore();
 		pause = cin.get();
-		return 1;
 	}
 	else {
 		cout << "Unable to open " << outfile << endl;
@@ -76,7 +75,7 @@ string generateSampleFile()
 	outFile.open("generated_sample.txt");
 
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
-		"function convert(fahr:int)\n{ \nreturn 5.4.8*(fahr - 32) /.9; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
+		"function convert(fahr:integer)\n{ \nreturn 5*(fahr - 32) /.9; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n }\n$$\n";
 	outFile.close();
 

@@ -15,7 +15,7 @@ class Parser
 	Lexer lex;
 
 public:
-	Parser(string filename) : lex(filename) {};
+	Parser(string filename) : lex(filename) {}
 	~Parser();
 
 	//private:
@@ -24,7 +24,7 @@ public:
 	void throwError(string s, Token &t);
 
 	//Start of Language Rule Functions
-	RootNode* parseFile();							// R1
+	RootNode* parseFile();						// R1
 
 	NodeList* parseFunctionDefs();				// R2&3
 
@@ -48,26 +48,26 @@ public:
 
 	NodeList* parseStatementList(string s);		// R14
 	
-	Node* parseStatement();						// R15
+	/*Node* parseStatement();					// R15
 
 	NodeList* parseCompound();					// R16
 
 	Assign* parseAssign();						// R17
 	If* parseIf();								// R18
-	If* parseIf2();								// R18.b Left factorization
+	If* parseIfPrime();							// R18.b Left factorization
 	NodeList* parseReturn();					// R19
 	NodeList* parseWrite();						// R20
 	NodeList* parseRead();						// R21
 	NodeList* parseWhile();						// R22
 	Condition* parseCondition();				// R23
-	NodeList* parseRelop();						// R24 - (we don't actually need this?)
+	NodeList* parseRelop();						// R24 
 	NodeList* parseExpression();				// R25
-	NodeList* parseExpression2();				// R25b Recursion (expression prime)
+	NodeList* parseExpressionPrime();			// R25b Recursion (expression prime)
 	NodeList* parseTerm();						// R26
-	NodeList* parseTerm2();						// R26b Recursion (term prime)
+	NodeList* parseTermPrime();					// R26b Recursion (term prime)
 	NodeList* parseFactor();					// R27
 	NodeList* parsePrimary();					// R28
-	
+	*/
 };
 
 Parser::~Parser()
@@ -76,8 +76,15 @@ Parser::~Parser()
 }
 
 //Function to use for outputing an error
-void throwError(string s, Token &t) {
-	throw "Found " + t.value + " on Line " + to_string(t.lineNum) + ": " + s;
+void Parser::throwError(string s, Token &t) {
+	try {
+		throw 42;
+	}
+	catch (...) {
+		cout << endl << "Found '" + t.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
+		exit(666);
+		return;
+	}
 }
 
 // Rule 1 ~~~~~~ Completed ~~~~~~~~~~
@@ -100,36 +107,29 @@ NodeList* Parser::parseFunctionDefs() {
 			// no more definitions
 			return defs;
 		}
-		auto def = parseFunction();
-		if (def) {
-			//adds function to nodelist if there is one
-			defs->add(def);
+		if (t.value == "function")
+		{
+			auto def = parseFunction();
+			if (def) {
+				//adds function to nodelist if there is one
+				defs->add(def);
+			}
 		}
 	}
 }
 
 // Rule 4 ~~~~~~ Completed ~~~~~~~~~~
 FunctionDef* Parser::parseFunction() {
-	auto t = lex.next();
-	if (t.type != KEYWORD || t.value != "function")
-	{
-		//error handling
-		throwError("Error, expected FUNCTION KEYWORD.", t);
-	}
-
-	//need to hold onto this token to place in Tree
 	auto id = lex.next();
-	if (t.type != IDENTIFIER)
+	if (id.type != IDENTIFIER)
 	{
-		throwError("Error, expected IDENTIFIER.", t);
+		throwError("Error, expected IDENTIFIER.", id);
 	}
-
-	t = lex.next();
+	auto t = lex.next();
 	if (t.value != "(")
 	{
 		throwError("Error, expected an '('.", t);
 	}
-
 	//Paramlist will go until ')'
 	auto paramlist = parseParameterList();
 
@@ -250,9 +250,12 @@ Node* Parser::parseIdentifier() {
 	return new Identifier(id);
 }
 
+
  // Rule 14 ~~~~~~ Completed ~~~~~~~~~~
 NodeList* Parser::parseStatementList(string s) {
-	auto t = lex.next();
+	cout << "HELP";
+	return NULL;
+	/*auto t = lex.next();
 	NodeList* statements = new NodeList;
 	while (true)
 	{
@@ -277,9 +280,9 @@ NodeList* Parser::parseStatementList(string s) {
 			//adds the statement to the list
 			statements->add(statement);
 		}
-	}
+	}*/
 }
-
+/*
  // Rule 15 ~~~~~~ Completed ~~~~~~~~~~
 Node* Parser::parseStatement() {
 	auto t = lex.next();
@@ -315,6 +318,7 @@ Node* Parser::parseStatement() {
 	{
 		throwError("Error, expected starting token of a STATEMENT.", t);
 	}
+	return NULL;
 }
 
  // Rule 16 ~~~~~~ Completed ~~~~~~~~~~
@@ -326,7 +330,7 @@ NodeList* Parser::parseCompound() {
 	return parseStatementList("}");
 }
 
- // Rule 17 
+ // Rule 17 ~~~~~~ Completed ~~~~~~~~~~
 Assign* Parser::parseAssign() {
 	
 	auto id = lex.next();
@@ -343,50 +347,42 @@ Assign* Parser::parseAssign() {
 	return new Assign(id, express);
 }
 
- // ~~~~ Incomplete (How do we deal with left factorization regarding the returns?)
  // R18 If=> if ( <Condition> ) <Statement> <If2>
 If* Parser::parseIf() {
 	auto t = lex.next();
-	if (t.value != "if")
-	{	
-		throwError("error, expected token type KEYWORD, value \"if\"", t);
-	}
-
-	auto t = lex.next();
 	if (t.value != "(") 
 	{
-		throwError("error, expected token type SEPARATOR, value (", t);
+		throwError("Error, expected '('.", t);
 	}
-
 	auto cond = parseCondition();
-
-	auto t = lex.next();
+	t = lex.next();
 	if (t.value != ")")
 	{
 		throwError("error, expected token type SEPARATOR, value (", t);
 	}
 	auto statement = parseStatement();
-	auto if2 = parseIf2();
+	auto if2 = parseIfPrime();
+	return NULL;
 }
 
  // ~~~~Incomplete - (How do we return if this no longer calls condition due to factorization?)
  // R18b If2=> endif | else <Statement> endif 
-If* Parser::parseIf2() {
+If* Parser::parseIfPrime() {
 	auto t = lex.next();
 	if (t.value != "endif" | t.value != "else")
 	{
 		throwError("error, expected token value \"endif\" or \"else\"", t);
 	}
 	auto statement = parseStatement();
-	auto t = lex.next();
+	t = lex.next();
 	if (t.value != "endif")
 	{
 		throwError("error, expected token value \"endif\"", t);
 	}
-
+	return NULL;
 	// return new If(cond, ifbody, elsebody)
 }
-
+/*
  // R19 
 NodeList* Parser::parseReturn() {
 	auto t = lex.next();
@@ -572,4 +568,4 @@ NodeList* Parser::parsePrimary() {
 		throwError("error, expected IDENTIFIER or integer or ( or real or true or false", t);
 		break;
 	}
-}
+}*/
