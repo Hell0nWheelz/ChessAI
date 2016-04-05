@@ -1,6 +1,5 @@
 #include <vector>
 #include <iostream>
-#include "lexer.h"
 
 //~~~~ To Do ~~~~~~~
 //Add constructors (pass null if empty)
@@ -15,8 +14,8 @@ public:
 	Node();
 	virtual ~Node();
 
-	virtual void print();
-	virtual void codeGen();
+	//virtual void print();
+	//virtual void codeGen();
 private:
 
 };
@@ -39,6 +38,9 @@ private:
 };
 
 class RootNode : public Node {
+public:
+	RootNode(NodeList* f, NodeList* d, NodeList* s) : defs(f), decls(d), statements(s) { }
+private:
 	NodeList *defs; // would be null if not there
 	NodeList *decls;
 	NodeList *statements;
@@ -47,17 +49,16 @@ class RootNode : public Node {
 //~~~~ Completed ~~~~~~
 class FunctionDef : public Node {
 public:
-	//changed 2nd parameter to ParamDef* type
-	FunctionDef(Token id, ParamDef* params, NodeList* declarations, NodeList* body)
+	FunctionDef(Token id, NodeList* params, NodeList* declarations, NodeList* body)
 		//Default Constructor Syntax
 		: funcID(id), params(params), decls(declarations), body(body) { } 
 private:
 	Token funcID;
-	ParamDef *params; //should this be ParamDef instead of NodeList?
+	NodeList *params; 
 	NodeList *decls;
 	NodeList *body;
 };
-//~~~~ 
+
 class ParamDef : public Node {
 public:
 	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
@@ -82,14 +83,22 @@ private:
 	Node* expression;
 };
 
+class Condition : public Node {
+public:
+	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
+private:
+	Token oper;
+	Node* left;
+	Node* right;
+};
+
 class If : public Node {
 public:
-	If(Condition* cond, NodeList* ibody, NodeList* ebody) : condition(cond), ifbody(ibody), elsebody(ebody) {}
-	Condition* condition;
+	If(Condition* cond, Node* istate, Node* estate) : condition(cond), ifstatement(istate), elsestatement(estate) { }
 private:
-	NodeList* ifbody;
-	NodeList* elsebody;
-
+	Condition* condition;
+	Node* ifstatement;
+	Node* elsestatement;
 };
 
 class Return : public Node {
@@ -121,15 +130,6 @@ private:
 	NodeList* body;
 };
 
-class Condition : public Node {
-public:
-	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
-private:
-	Token oper;
-	Node* left;
-	Node* right;
-};
-
 class BinaryExpression : public Node {
 public:
 	BinaryExpression(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
@@ -141,8 +141,9 @@ private:
 
 class UrinaryExpression : public Node {
 public:
-	UrinaryExpression(Node* cent) : center(cent) {}
+	UrinaryExpression(Token t, Node* cent) : oper(t), center(cent) {}
 private:
+	Token oper;
 	Node* center;
 };
 

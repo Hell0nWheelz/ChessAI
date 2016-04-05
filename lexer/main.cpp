@@ -21,8 +21,8 @@ int main() {
 	ofstream file;
 
 	cout << "Enter in the name of your test file or enter in [Gen] to generate a sample file: ";
-	cin >> infile;
-
+	//cin >> infile;
+	infile = "Gen";
 
 	if (infile == "Gen") {
 		infile = generateSampleFile();
@@ -52,10 +52,9 @@ int main() {
 
 		file.close();
 
-		cout << "Press a key to continue... ";
-		cin.ignore();
-		pause = cin.get();
-		return 1;
+		cout << "Lexer complete! Press a key to continue... ";
+		//cin.ignore();
+		//pause = cin.get();
 	}
 	else {
 		cout << "Unable to open " << outfile << endl;
@@ -63,6 +62,9 @@ int main() {
 		cin.ignore();
 		pause = cin.get();
 	}
+
+	Parser parse(infile);
+	auto root = parse.parseFile();
 
 	return 0;
 }
@@ -73,7 +75,7 @@ string generateSampleFile()
 	outFile.open("generated_sample.txt");
 
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
-		"function convert(fahr:int)\n{ \nreturn 5.4.8*(fahr - 32) /.9; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
+		"function convert(fahr:integer)\n{ \nreturn 5*(fahr - 32) /.9; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n }\n$$\n";
 	outFile.close();
 
