@@ -35,7 +35,7 @@ private:
 
 	NodeList* parseBody();							// R9
 
-	NodeList* parseDeclarationList();				// R10&11
+	NodeList* parseDeclarationList(string s);				// R10&11
 
 	Declaration* parseDeclaration();				// R12
 
@@ -59,7 +59,7 @@ private:
 	NodeList* parseRead();							// R21
 	NodeList* parseWhile();							// R22
 	Condition* parseCondition();					// R23
-	NodeList* parseRelop();							// R24 
+	//NodeList* parseRelop();							// R24 
 
 	Node* parseExpression();						// R25
 
@@ -77,28 +77,34 @@ private:
 	void throwError(string s, Token &t);
 
 	Token token;
-	bool heldToken;
 
-	Token getToken() {
-		if (heldToken)
-		{
-			heldToken = false;
-			return token;
-		}
-		else
-		{
-			return token = getToken();
-		}
-	}
+	bool heldToken = false;
 
-	void holdToken() {
-		heldToken = true;
-	}
+	Token getToken(); 
+
+	void holdToken();
 };
 
 Parser::~Parser()
 {
 
+}
+
+Token Parser::getToken() {
+	if (heldToken)
+	{
+		heldToken = false;
+		return token;
+	}
+	else
+	{
+		token = lex.next();
+		return token;
+	}
+}
+
+void Parser::holdToken() {
+	heldToken = true;
 }
 
 //Function to use for outputing an error
@@ -124,7 +130,7 @@ RootNode* Parser::parseFile() {
 	}
 
 	// <Opt Declaration List>
-	auto d = parseDeclarationList();
+	auto d = parseDeclarationList("$$");
 	token = getToken();
 	if (token.value != "$$")
 	{
@@ -142,6 +148,7 @@ RootNode* Parser::parseFile() {
 		}
 		throwError("Error, expected EOF MARKER", token);
 	}
+	return new RootNode(f, d, s);
 }
 
 // Rule 2&3  ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
@@ -149,7 +156,7 @@ NodeList* Parser::parseFunctionDefs() {
 	NodeList* defs = new NodeList;
 	while (true)
 	{
-		token = getToken();
+		auto t = getToken();
 		if (token.value == "$$") {
 			// no more definitions
 			return defs;
@@ -198,12 +205,11 @@ FunctionDef* Parser::parseFunction() {
 	{
 		throwError("Error, expected an '('.", token);
 	}
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print)
-		{
-			displayToken(token);
-		}
+	// ~~~~ PRINT START ~~~~
+	if (print)
+	{
+		displayToken(token);
+	}
 	// ~~~~ PRINT END ~~~~
 
 	//Paramlist will go until ')'
@@ -216,7 +222,7 @@ FunctionDef* Parser::parseFunction() {
 	}
 
 	//DeclarationList will go until '{'
-	auto declist = parseDeclarationList();
+	auto declist = parseDeclarationList("{");
 
 	auto body = parseBody();
 
@@ -225,6 +231,7 @@ FunctionDef* Parser::parseFunction() {
 
 // Rule 5&6  ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
 NodeList* Parser::parseParameterList() {
+	token = getToken();
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
@@ -234,7 +241,7 @@ NodeList* Parser::parseParameterList() {
 	NodeList* params = new NodeList;
 	while (true)
 	{
-		token = getToken();
+		
 		if (token.value == ")") {
 			// ~~~~ PRINT START ~~~~
 			if (print) {
@@ -245,12 +252,12 @@ NodeList* Parser::parseParameterList() {
 			holdToken();
 			return params;
 		}
+		holdToken();
 		auto param = parseParameter();
 		if (param) {
 			//adds Parameter to nodelist if there is one
 			params->add(param);
 		}
-		
 		token = getToken();
 		if (token.value != "," && token.value != ")")
 		{
@@ -321,20 +328,21 @@ NodeList* Parser::parseBody() {
 	return state;
 }
 
-// Rule 10&11 PRINT COMPLETED (Is dec list finished though?)
-NodeList* Parser::parseDeclarationList() {
+// Rule 10&11 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED (Is dec list finished though?)
+NodeList* Parser::parseDeclarationList(string s) {
+	token = getToken();
 	NodeList* decs = new NodeList;
 	while (true)
 	{
-		token = getToken();
-		if (token.value == "{") {
+		
+		if (token.value == s) {
 			// ~~~~ PRINT START ~~~~
 			if (print) {
 				displayToken(token);
 			}
 			// ~~~~ PRINT END ~~~~
-
 			// no more declarations
+			holdToken();
 			return decs;
 		}
 		auto dec = parseDeclaration();
@@ -343,9 +351,9 @@ NodeList* Parser::parseDeclarationList() {
 			decs->add(dec);
 		}
 		token = getToken();
-		if (true)
+		if (token.value != ";" && token.value != s)
 		{
-
+			throwError("Error, expected ';' or " + s + ".", token);
 		}
 	}
 }
@@ -365,10 +373,11 @@ Declaration* Parser::parseDeclaration() {
 
 // Rule 13 PRINT COMPLETED
 NodeList* Parser::parseIDs() {
+	token = getToken();
 	NodeList* ids = new NodeList;
 	while (true)
 	{
-		token = getToken();
+
 		if (token.type != IDENTIFIER) {//
 			// ~~~~ PRINT START ~~~~
 			if (print)
@@ -387,26 +396,24 @@ NodeList* Parser::parseIDs() {
 			ids->add(id);
 		}
 		token = getToken();
-		if (token.value != ",")
+		if (token.value != "," && token.value != ":")
 		{
-			throwError("Error, expected ',' or '", token);
+			throwError("Error, expected ',' or ':", token);
 		}
 	}
 }
 
 // Rule 13 Helper PRINT COMPLETE
 Node* Parser::parseIdentifier() {
-	token = getToken();
 	if (token.type != IDENTIFIER)
 	{
 		throwError("Error, expected IDENTIFIER.", token);
 	}
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print)
-		{
-			displayToken(token);
-		}
+	// ~~~~ PRINT START ~~~~
+	if (print)
+	{
+		displayToken(token);
+	}
 	// ~~~~ PRINT END ~~~~
 	return new Identifier(token);
 }
@@ -431,7 +438,6 @@ NodeList* Parser::parseStatementList() {
 
 // Rule 15 PRINT COMPLETE
 Node* Parser::parseStatement() {
-	token = getToken();
 	if (token.value == "{") //Compound 
 	{
 		// ~~~~ PRINT START ~~~~
@@ -472,6 +478,7 @@ Node* Parser::parseStatement() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
+		holdToken();
 		return parseReturn();
 	}
 	else if (token.value == "printf") //Write
@@ -527,13 +534,14 @@ NodeList* Parser::parseCompound() {
 	{
 		displayToken(token);
 	}
-	parseStatementList();
+	auto state = parseStatementList();
 	
 	token = getToken();
 	if (token.value != "}")
 	{
 		throwError("Error, expected '}'.", token);
 	}
+	return state;
 }
 
 // Rule 17 PRINT COMPLETE
@@ -818,39 +826,29 @@ Node* Parser::parseExpression() {
 	}
 	// ~~~~ PRINT END ~~~~
 	auto term = parseTerm();
-	return parseExpressionPrime();
+	auto exp = parseExpressionPrime();
+	return nullptr;
 }
 
 // R25 Prime PRINT INCOMPLETE, HANDLE EPSILON
 Node* Parser::parseExpressionPrime() {
-	if (token.value == "+")
+	if (token.value == "+" || token.value == "-")
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<ExpressionPrime> =>" << "+ <Term> <ExpressionPrime>\n";
+			cout << setw(22) << "<ExpressionPrime> =>  " + token.value + " <Term> <ExpressionPrime>\n";
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		auto term = parseTerm();
 		auto express = parseExpressionPrime();
 	}
-	else if (token.value == "-")
+	else if (token.value == ";" || token.type == OPERATOR )
 	{
-		// ~~~~ PRINT START ~~~~
-		if (print) {
-			cout << setw(22) << "<ExpressionPrime> =>" << "- <Term> <ExpressionPrime>\n";
-			displayToken(token);
-		}
-		// ~~~~ PRINT END ~~~~
-		auto term = parseTerm();
-		auto express = parseExpressionPrime();
-	}
-	else
-	{
-		throwError("Error, expected '+' or '-'.", token);
+		return nullptr;//RETURN NULL
 	}
 	//need to handle printing epsilon 
-	return nullptr;//RETURN NULL
+	
 }
 
 // R26 PRINT COMPLETE
@@ -861,42 +859,31 @@ NodeList* Parser::parseTerm() {
 		//system("Pause");
 	}
 	// ~~~~ PRINT END ~~~~
-
 	auto factor = parseFactor();
-	return parseTermPrime();
+	auto term = parseTermPrime();
+	return nullptr;
+	
 }
 
 // R26 Prime PRINT INCOMPLETE, HANDLE EPSILON
 NodeList* Parser::parseTermPrime() {
 	token = getToken();
-	if (token.value == "*")
+	if (token.value == "*" || token.value == "/")
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<TermPrime> =>" << "* <Factor> <TermPrime>\n";
+			cout << setw(22) << "<TermPrime> => " + token.value + " <Factor> <TermPrime>\n";
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		auto fact = parseFactor();
 		auto term = parseTermPrime();
 	}
-	if (token.value == "/")
+	else if (token.value == ";" || token.type == OPERATOR)
 	{
-		// ~~~~ PRINT START ~~~~
-		if (print) {
-			cout << setw(22) << "<TermPrime> =>" << "/ <TermPrime>\n";
-			displayToken(token);
-		}
-		// ~~~~ PRINT END ~~~~
-		auto fact = parseFactor();
-		auto term = parseTermPrime();
+		return nullptr;//RETURN NULL
 	}
-	else
-	{
-		throwError("Error, expected '*' or '/'.", token);
-	}
-	//need to handle printing epsilon
-	  return nullptr;//RETURN NULL
+	return nullptr;
 }
 
 // R27 PRINT INCOMPLETE
@@ -916,6 +903,7 @@ Node* Parser::parsePrimary() {
 	token = getToken();
 	if (token.type == IDENTIFIER)
 	{
+		auto i = token;
 		token = getToken();
 		if (token.value == "(")
 		{
@@ -923,12 +911,12 @@ Node* Parser::parsePrimary() {
 			token = getToken();
 			if (token.value == ")")
 			{
-
+				return new FunctionCall(token, ids);
 			}
 		}
 		else
 		{
-			throwError("Error, expected '('.", token);
+			return new Identifier(i);
 		}
 	}
 	else if (token.type == INTEGER)
@@ -937,7 +925,7 @@ Node* Parser::parsePrimary() {
 	}
 	else if (token.value == "(")
 	{
-		return nullptr;
+		return parseExpression();
 	}
 	else if (token.type == REAL)
 	{
@@ -949,7 +937,7 @@ Node* Parser::parsePrimary() {
 	}
 	else
 	{
-		throwError("Error, expected a PRIMARY", token);
+		return nullptr;
 	}
 }
 
