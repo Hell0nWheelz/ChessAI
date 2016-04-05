@@ -41,7 +41,7 @@ private:
 
 	NodeList* parseIDs();							// R13 -- Needs fixing
 
-	Node* Parser::parseIdentifier();				// R13 Helper function for identifier
+	Node* parseIdentifier();				// R13 Helper function for identifier
 
 	NodeList* parseStatementList();					// R14 -- Needs fixing
 
@@ -56,7 +56,7 @@ private:
 	If* parseIfPrime(Condition *c, Node *s);		// R18 Prime Left factorization
 	Node* parseReturn();							// R19
 	NodeList* parseWrite();							// R20
-	NodeList* parseRead();							// R21
+	Read* parseRead();							// R21
 	NodeList* parseWhile();							// R22
 	Condition* parseCondition();					// R23
 	//NodeList* parseRelop();							// R24 
@@ -331,11 +331,11 @@ NodeList* Parser::parseBody() {
 
 // Rule 10&11 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED (Is dec list finished though?)
 NodeList* Parser::parseDeclarationList(string s) {
-	token = getToken();
+	
 	NodeList* decs = new NodeList;
 	while (true)
 	{
-		
+		token = getToken();
 		if (token.value == s) {
 			// ~~~~ PRINT START ~~~~
 			if (print) {
@@ -375,22 +375,18 @@ Declaration* Parser::parseDeclaration() {
 
 // Rule 13 PRINT COMPLETED
 NodeList* Parser::parseIDs() {
-	token = getToken();
 	NodeList* ids = new NodeList;
 	while (true)
 	{
-
-		if (token.type != IDENTIFIER) {//
+		token = getToken();
+		if (token.type != IDENTIFIER) {
 			// ~~~~ PRINT START ~~~~
 			if (print)
 			{
-				cout << setw(22) << "<IDs> =>" << "<Identifier>\n";
+				cout << setw(22) << "<IDs> =>" << "<Identifier> || <Identifier>, <IDs>\n";
 				displayToken(token);
 			}
-			// ~~~~ PRINT END ~~~~
-			// no more ids
-			holdToken();
-			return ids;
+			break;
 		}
 		auto id = parseIdentifier();
 		if (id) {
@@ -398,11 +394,13 @@ NodeList* Parser::parseIDs() {
 			ids->add(id);
 		}
 		token = getToken();
-		if (token.value != "," && token.value != ":")
+		if (token.value != ",")
 		{
-			throwError("Error, expected ',' or ':", token);
+			break;
 		}
 	}
+	holdToken();
+	return ids;
 }
 
 // Rule 13 Helper PRINT COMPLETE
@@ -683,7 +681,7 @@ Node* Parser::parseReturn() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Return> =>" << "return <Expression>\n;";
+			cout << setw(22) << "<Return> =>" << "return <Expression>;" << endl;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -731,7 +729,7 @@ NodeList* Parser::parseWrite() {
 }
 
 // R21 PRINT COMPLETE
-NodeList* Parser::parseRead() {
+Read* Parser::parseRead() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n;";
@@ -748,7 +746,18 @@ NodeList* Parser::parseRead() {
 		displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-	return parseIDs();
+	auto ids = parseIDs();
+	token = getToken();
+	if (token.value != ")")
+	{
+		throwError("Error, expected ')'.", token);
+	}
+	token = getToken();
+	if (token.value != ";")
+	{
+		throwError("Error, expected ';'.", token);
+	}
+	return new Read(ids);
 }
 
 // R22 PRINT COMPLETE
@@ -758,34 +767,33 @@ NodeList* Parser::parseWhile() {
 		cout << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = getToken();
-	if (token.value != "while")
+	if (token.value != "while") {
 		throwError("error, expected token value \"while\"", token);
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print) {
+	}
+	// ~~~~ PRINT START ~~~~
+	if (print) {
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
-	if (token.value != "(")
-		throwError("error, expected token value \"(\"", token);
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print) {
+	if (token.value != "(") {
+		throwError("Error, expected token value '('.", token);
+	}
+	// ~~~~ PRINT START ~~~~
+	if (print) {
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
 
 	auto cond = parseCondition();
 	token = getToken();
-	if (token.value != ")")
-		throwError("error, expected token value \")\"", token);
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print) {
+	if (token.value != ")") {
+		throwError("error, expected token value ')'.", token);
+	}
+	// ~~~~ PRINT START ~~~~
+	if (print) {
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
 
 	auto statement = parseStatement();

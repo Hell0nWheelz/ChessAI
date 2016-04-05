@@ -52,7 +52,7 @@ int main() {
 
 		file.close();
 
-		cout << "Lexer complete! Press a key to continue... ";
+		cout << "Lexer complete! Press a key to continue... " << endl;
 		//cin.ignore();
 		//pause = cin.get();
 	}
