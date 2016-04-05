@@ -67,7 +67,7 @@ private:
 	NodeList* parseTerm();							// R26
 	NodeList* parseTermPrime();						// R26b Recursion (term prime)
 	Node* parseFactor();							// R27
-	//NodeList* parsePrimary();						// R28
+	Node* parsePrimary();							// R28
 	//End of Language Rule Functions
 
 
@@ -87,7 +87,7 @@ private:
 		}
 		else
 		{
-			return token = lex.next();
+			return token = getToken();
 		}
 	}
 
@@ -113,12 +113,27 @@ void Parser::throwError(string s, Token &t) {
 	}
 }
 
-// Rule 1 ~~~~~~ Completed ~~~~~~~~~~ 
+// Rule 1  ~~~~~~ Completed ~~~~~~~~~~
 RootNode* Parser::parseFile() {
-	//Call Function Definitions
+	// <Opt Function Definitions>
 	auto f = parseFunctionDefs();
+	token = getToken();
+	if (token.value != "$$")
+	{
+		throwError("Error, expected '&&'.", token);
+	}
+
+	// <Opt Declaration List>
 	auto d = parseDeclarationList();
+	token = getToken();
+	if (token.value != "$$")
+	{
+		throwError("Error, expected '&&'.", token);
+	}
+
+	// <Statement List>
 	auto s = parseStatementList();
+	token = getToken();
 	if (token.value == "$$")
 	{
 		if (token.type == eof)
@@ -129,7 +144,7 @@ RootNode* Parser::parseFile() {
 	}
 }
 
-// Rule 2&3 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 2&3  ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
 NodeList* Parser::parseFunctionDefs() {
 	NodeList* defs = new NodeList;
 	while (true)
@@ -157,7 +172,7 @@ NodeList* Parser::parseFunctionDefs() {
 	}
 }
 
-// Rule 4 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 4  ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
 FunctionDef* Parser::parseFunction() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
@@ -165,7 +180,7 @@ FunctionDef* Parser::parseFunction() {
 		cout << left << setw(22) << "<Function> => " << "function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>\n\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.type != IDENTIFIER)
 	{
 		throwError("Error, expected IDENTIFIER.", token);
@@ -178,7 +193,7 @@ FunctionDef* Parser::parseFunction() {
 		}
 	// ~~~~ PRINT END ~~~~
 
-	token = lex.next();
+	token = getToken();
 	if (token.value != "(")
 	{
 		throwError("Error, expected an '('.", token);
@@ -194,36 +209,40 @@ FunctionDef* Parser::parseFunction() {
 	//Paramlist will go until ')'
 	auto paramlist = parseParameterList();
 
+	token = getToken();
+	if (token.value != ")")
+	{
+		throwError("Error, expected ')'.", token);
+	}
+
 	//DeclarationList will go until '{'
 	auto declist = parseDeclarationList();
 
-	//Body goes until '}'
 	auto body = parseBody();
 
 	return new FunctionDef(token, paramlist, declist, body);
 }
 
-// Rule 5&6 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 5&6  ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
 NodeList* Parser::parseParameterList() {
-	token = lex.next();
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
 		displayToken(token);
 	}
 	// ~~~~ PRINT END ~~~~
-
 	NodeList* params = new NodeList;
 	while (true)
 	{
+		token = getToken();
 		if (token.value == ")") {
 			// ~~~~ PRINT START ~~~~
 			if (print) {
 				displayToken(token);
 			}
 			// ~~~~ PRINT END ~~~~
-
 			// no more Parameters
+			holdToken();
 			return params;
 		}
 		auto param = parseParameter();
@@ -231,22 +250,21 @@ NodeList* Parser::parseParameterList() {
 			//adds Parameter to nodelist if there is one
 			params->add(param);
 		}
-
-		token = lex.next();
+		
+		token = getToken();
 		if (token.value != "," && token.value != ")")
 		{
 			throwError("Error, expected ',' or ')'.", token);
 		}
-		else
-			// ~~~~ PRINT START ~~~~
-			if (print) {
-				displayToken(token);
-			}
-			// ~~~~ PRINT END ~~~~		
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			displayToken(token);
+		}
+		// ~~~~ PRINT END ~~~~		
 	}
 }
 
-// Rule 7 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 7  ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
 ParamDef* Parser::parseParameter() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
@@ -266,26 +284,16 @@ ParamDef* Parser::parseParameter() {
 
 // Rule 8 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
 Token Parser::parseQualifier() {
-	token = lex.next();
+	token = getToken();
 	if (token.value != "integer" && token.value != "boolean" && token.value != "real")
 	{
 		throwError("Error, expected QUALIFIER.", token);
 	}
 	// ~~~~ PRINT START ~~~~
-	else if (token.value == "integer" && print)
+	if (print)
 	{
 		displayToken(token);
-		cout << left << setw(22) << "<Qualifier> =>" << "integer\n";
-	}
-	else if (token.value == "boolean" && print)
-	{
-		displayToken(token);
-		cout << left << setw(22) << "<Qualifier> =>" << "boolean\n";
-	}
-	else if (token.value == "real" && print)
-	{
-		displayToken(token);
-		cout << left << setw(22) << "<Qualifier> =>" << "real\n";
+		cout << left << setw(22) << "<Qualifier> =>" << token.value << endl;
 	}
 	// ~~~~ PRINT END ~~~~
 	return token;
@@ -297,16 +305,28 @@ NodeList* Parser::parseBody() {
 	if (print) {
 		cout << setw(22) << "<Body> =>" << "{ <Statement List> }\n";
 	}
+	token = getToken();
+	if (token.value != "{")
+	{
+		throwError("Error, expected '{'.", token);
+	}
 	// ~~~~ PRINT END ~~~~
-	return parseStatementList("}"); //expect a '}' at end of body
+	auto state = parseStatementList();
+	
+	token = getToken();
+	if (token.value != "}")
+	{
+		throwError("Error, expected '}'.", token);
+	}
+	return state;
 }
 
-// Rule 10&11 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED (Is dec list finished though?)
+// Rule 10&11 PRINT COMPLETED (Is dec list finished though?)
 NodeList* Parser::parseDeclarationList() {
-	token = lex.next();
 	NodeList* decs = new NodeList;
 	while (true)
 	{
+		token = getToken();
 		if (token.value == "{") {
 			// ~~~~ PRINT START ~~~~
 			if (print) {
@@ -322,7 +342,7 @@ NodeList* Parser::parseDeclarationList() {
 			//adds the declaration to the list
 			decs->add(dec);
 		}
-		token = lex.next();
+		token = getToken();
 		if (true)
 		{
 
@@ -330,7 +350,7 @@ NodeList* Parser::parseDeclarationList() {
 	}
 }
 
-// Rule 12 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 12 PRINT COMPLETED
 Declaration* Parser::parseDeclaration() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
@@ -339,16 +359,16 @@ Declaration* Parser::parseDeclaration() {
 	}
 	// ~~~~ PRINT END ~~~~
 	auto qualifier = parseQualifier();
-	auto ids = parseIDs(";"); //since it's a declaration it ends on ';'
+	auto ids = parseIDs(); //since it's a declaration it ends on ';'
 	return new Declaration(qualifier, ids);
 }
 
-// Rule 13 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 13 PRINT COMPLETED
 NodeList* Parser::parseIDs() {
-	token = getToken();
 	NodeList* ids = new NodeList;
 	while (true)
 	{
+		token = getToken();
 		if (token.type != IDENTIFIER) {//
 			// ~~~~ PRINT START ~~~~
 			if (print)
@@ -366,25 +386,17 @@ NodeList* Parser::parseIDs() {
 			//adds the id to the list
 			ids->add(id);
 		}
-		token = lex.next();
-		if (token.value != "," && token.value != s)
+		token = getToken();
+		if (token.value != ",")
 		{
-			throwError("Error, expected ',' or '" + s + "'.", token);
+			throwError("Error, expected ',' or '", token);
 		}
-		else
-			// ~~~~ PRINT START ~~~~
-			if (print)
-			{	
-				cout << "<IDs> => <Identifier>, <IDs>\n\n";
-				displayToken(token);
-			}
-			// ~~~~ PRINT END ~~~~
 	}
 }
 
-// Rule 13 Helper ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// Rule 13 Helper PRINT COMPLETE
 Node* Parser::parseIdentifier() {
-	token = lex.next();
+	token = getToken();
 	if (token.type != IDENTIFIER)
 	{
 		throwError("Error, expected IDENTIFIER.", token);
@@ -399,26 +411,14 @@ Node* Parser::parseIdentifier() {
 	return new Identifier(token);
 }
 
-// Rule 14 ~~~~~~ Completed ~~~~~~~~~~ NO PRINT NEEDED
-NodeList* Parser::parseStatementList(string s) {
-	token = lex.next();
+// Rule 14 NO PRINT NEEDED
+NodeList* Parser::parseStatementList() {
 	NodeList* statements = new NodeList;
 	while (true)
 	{
-		if (token.value == s) {
-			if (token.value == "$$")
-			{
-				token = lex.next();
-			}
-			else
-			{
-				return statements;
-			}
-			if (token.type != eof && s == "$$")
-			{
-				throwError("Error, expected EOF MARKER.", token);
-			}
-			// no more statements <--------- END OF PROGRAM if token.value == $$
+		token = getToken();
+		if (token.value == "}" ) {
+			holdToken();
 			return statements;
 		}
 		auto statement = parseStatement();
@@ -429,8 +429,9 @@ NodeList* Parser::parseStatementList(string s) {
 	}
 }
 
-// Rule 15 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// Rule 15 PRINT COMPLETE
 Node* Parser::parseStatement() {
+	token = getToken();
 	if (token.value == "{") //Compound 
 	{
 		// ~~~~ PRINT START ~~~~
@@ -439,7 +440,7 @@ Node* Parser::parseStatement() {
 			cout << setw(22) << "<Statement> =>" << "<Compound>\n";
 		}
 		// ~~~~ PRINT END ~~~~
-
+		holdToken();
 		return parseCompound();
 	}
 	else if (token.type == IDENTIFIER) //Assign
@@ -510,7 +511,7 @@ Node* Parser::parseStatement() {
 	return NULL;//may not need
 }
 
-// Rule 16 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
+// Rule 16 PRINT COMPLETED
 NodeList* Parser::parseCompound() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
@@ -518,19 +519,24 @@ NodeList* Parser::parseCompound() {
 		cout << setw(22) << "<Compound> =>" << "{ <Statement List> }\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != "{") {
 		throwError("Error, expected token value '{'.", token);
 	}
-	else
-		if (print)
-		{
+	if (print)
+	{
 		displayToken(token);
-		}
-	return parseStatementList("}");
+	}
+	parseStatementList();
+	
+	token = getToken();
+	if (token.value != "}")
+	{
+		throwError("Error, expected '}'.", token);
+	}
 }
 
-// Rule 17 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// Rule 17 PRINT COMPLETE
 Assign* Parser::parseAssign() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
@@ -538,7 +544,7 @@ Assign* Parser::parseAssign() {
 		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>\n\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.type != IDENTIFIER)
 	{
 		throwError("Error, expected IDENTIFIER.", token);
@@ -551,7 +557,7 @@ Assign* Parser::parseAssign() {
 		}
 	// ~~~~ PRINT END ~~~~
 
-	token = lex.next();
+	token = getToken();
 	if (token.value != ":=")
 	{
 		throwError("Error, expected ':='.", token);
@@ -568,7 +574,7 @@ Assign* Parser::parseAssign() {
 	return new Assign(token, express);
 }
 
-// Rule 18 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// Rule 18 PRINT COMPLETE
 If* Parser::parseIf() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
@@ -576,7 +582,7 @@ If* Parser::parseIf() {
 		cout << setw(22) << "<If> =>" << "( <Condition> ) <Statement> <IfPrime>\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != "(")
 	{
 		throwError("Error, expected '('.", token);
@@ -606,9 +612,9 @@ If* Parser::parseIf() {
 	return parseIfPrime(cond, statement);
 }
 
-// R18 Prime ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R18 Prime PRINT COMPLETE
 If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
-	token = lex.next();
+	token = getToken();
 	if (token.value == "endif")
 	{
 		// ~~~~ PRINT START ~~~~
@@ -631,7 +637,7 @@ If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
 		// ~~~~ PRINT END ~~~~
 
 		auto elseStatement = parseStatement();
-		token = lex.next();
+		token = getToken();
 		if (token.value == "endif")
 		{
 			// ~~~~ PRINT START ~~~~
@@ -651,9 +657,9 @@ If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
 	}
 }
 
-// R19 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R19 PRINT COMPLETE
 Node* Parser::parseReturn() {
-	token = lex.next();
+	token = getToken();
 	if (token.value == ";") {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
@@ -675,14 +681,14 @@ Node* Parser::parseReturn() {
 	}
 }
 
-// R20 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R20 PRINT COMPLETE
 NodeList* Parser::parseWrite() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<Write> =>" << "printf ( <Expression> );\n;";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != "(") {
 		throwError("Error, expected token value '('.", token);
 	}
@@ -693,7 +699,7 @@ NodeList* Parser::parseWrite() {
 		}
 	// ~~~~ PRINT END ~~~~
 	auto express = parseExpression();
-	token = lex.next();
+	token = getToken();
 	if (token.value != ")")
 		throwError("error, expected token value \")\"", token);
 	else
@@ -702,7 +708,7 @@ NodeList* Parser::parseWrite() {
 		displayToken(token);
 		}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != ";")
 		throwError("error, expected token value \";\"", token);
 	else
@@ -714,14 +720,14 @@ NodeList* Parser::parseWrite() {
 	return nullptr;//RETURN NULL
 }
 
-// R21 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R21 PRINT COMPLETE
 NodeList* Parser::parseRead() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n;";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != "(")
 	{
 		throwError("Error, expected (", token);
@@ -732,17 +738,17 @@ NodeList* Parser::parseRead() {
 		displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-	return parseIDs("}");
+	return parseIDs();
 }
 
-// R22 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R22 PRINT COMPLETE
 NodeList* Parser::parseWhile() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != "while")
 		throwError("error, expected token value \"while\"", token);
 	else
@@ -751,7 +757,7 @@ NodeList* Parser::parseWhile() {
 		displayToken(token);
 		}
 	// ~~~~ PRINT END ~~~~
-	token = lex.next();
+	token = getToken();
 	if (token.value != "(")
 		throwError("error, expected token value \"(\"", token);
 	else
@@ -762,7 +768,7 @@ NodeList* Parser::parseWhile() {
 	// ~~~~ PRINT END ~~~~
 
 	auto cond = parseCondition();
-	token = lex.next();
+	token = getToken();
 	if (token.value != ")")
 		throwError("error, expected token value \")\"", token);
 	else
@@ -777,7 +783,7 @@ NodeList* Parser::parseWhile() {
 	return nullptr;//RETURN NULL
 }
 
-// R23 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R23 PRINT COMPLETE
 Condition* Parser::parseCondition() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -804,7 +810,7 @@ Condition* Parser::parseCondition() {
 
 // R24 Removed and handled in R23 praseCondition();
 
-// R25 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R25 PRINT COMPLETE
 Node* Parser::parseExpression() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -815,7 +821,7 @@ Node* Parser::parseExpression() {
 	return parseExpressionPrime();
 }
 
-// R25 Prime ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE, HANDLE EPSILON
+// R25 Prime PRINT INCOMPLETE, HANDLE EPSILON
 Node* Parser::parseExpressionPrime() {
 	if (token.value == "+")
 	{
@@ -847,7 +853,7 @@ Node* Parser::parseExpressionPrime() {
 	return nullptr;//RETURN NULL
 }
 
-// R26 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
+// R26 PRINT COMPLETE
 NodeList* Parser::parseTerm() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -860,9 +866,9 @@ NodeList* Parser::parseTerm() {
 	return parseTermPrime();
 }
 
-// R26 Prime ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE, HANDLE EPSILON
+// R26 Prime PRINT INCOMPLETE, HANDLE EPSILON
 NodeList* Parser::parseTermPrime() {
-	token = lex.next();
+	token = getToken();
 	if (token.value == "*")
 	{
 		// ~~~~ PRINT START ~~~~
@@ -893,7 +899,7 @@ NodeList* Parser::parseTermPrime() {
 	  return nullptr;//RETURN NULL
 }
 
-// R27 ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE
+// R27 PRINT INCOMPLETE
 Node* Parser::parseFactor() {
 	if (token.value == "-")
 	{
@@ -906,14 +912,19 @@ Node* Parser::parseFactor() {
 }
 
 // R28
-NodeList* Parser::parsePrimary() {
+Node* Parser::parsePrimary() {
 	token = getToken();
 	if (token.type == IDENTIFIER)
 	{
-		token = lex.next();
+		token = getToken();
 		if (token.value == "(")
 		{
-			return parseIDs(";");
+			auto ids = parseIDs();
+			token = getToken();
+			if (token.value == ")")
+			{
+
+			}
 		}
 		else
 		{
