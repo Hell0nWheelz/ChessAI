@@ -582,6 +582,7 @@ If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
 	token = lex.next();
 	if (token.value == "endif")
 	{
+		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
 			cout << setw(22) << "<IfPrime> =>" << "endif\n";
@@ -684,53 +685,96 @@ NodeList* Parser::parseWrite() {
 	return nullptr;//RETURN NULL
 }
 
-// R21
+// R21 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
 NodeList* Parser::parseRead() {
+	// ~~~~ PRINT START ~~~~
+	if (print) {
+		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n;";
+	}
+	// ~~~~ PRINT END ~~~~
 	token = lex.next();
 	if (token.value != "(")
 	{
 		throwError("Error, expected (", token);
 	}
+	else
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+		displayToken(token);
+		}
+		// ~~~~ PRINT END ~~~~
 	return parseIDs("}");
 }
 
-// R22
+// R22 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
 NodeList* Parser::parseWhile() {
+	// ~~~~ PRINT START ~~~~
+	if (print) {
+		cout << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>\n";
+	}
+	// ~~~~ PRINT END ~~~~
 	token = lex.next();
 	if (token.value != "while")
 		throwError("error, expected token value \"while\"", token);
-
+	else
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+		displayToken(token);
+		}
+	// ~~~~ PRINT END ~~~~
 	token = lex.next();
 	if (token.value != "(")
 		throwError("error, expected token value \"(\"", token);
+	else
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+		displayToken(token);
+		}
+	// ~~~~ PRINT END ~~~~
 
 	auto cond = parseCondition();
-
 	token = lex.next();
 	if (token.value != ")")
 		throwError("error, expected token value \")\"", token);
+	else
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+		displayToken(token);
+		}
+	// ~~~~ PRINT END ~~~~
 
 	auto statement = parseStatement();
 
-	//return new While(cond, body);
 	return nullptr;//RETURN NULL
 }
 
-// R23 
+// R23 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
 Condition* Parser::parseCondition() {
+	// ~~~~ PRINT START ~~~~
+	if (print) {
+		cout << setw(22) << "<Condition> =>" << "<Expression> <Relop> <Expression>";
+	}
+	// ~~~~ PRINT END ~~~~
 	auto exp1 = parseExpression();
 	token = lex.next();
 	if (token.value != "=" && token.value != "/=" && token.value != ">" && token.value != "<" && token.value != "=>" && token.value != "<=")
 	{
 		throwError("error, expected relational operator token value: = or /= or > or < or => or <=", token);
 	}
+	else
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+		displayToken(token);
+		}
+	// ~~~~ PRINT END ~~~~
+
 	auto exp2 = parseExpression();
 	return new Condition(token, exp1, exp2);
 }
 
 // R24 Removed and handled in R23 praseCondition();
 
-// R25 
+// R25 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
 Node* Parser::parseExpression() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -741,13 +785,14 @@ Node* Parser::parseExpression() {
 	return parseExpressionPrime();
 }
 
-// R25 Prime
+// R25 Prime ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE, HANDLE EPSILON
 Node* Parser::parseExpressionPrime() {
 	if (token.value == "+")
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			cout << setw(22) << "<ExpressionPrime> =>" << "+ <Term> <ExpressionPrime>\n";
+			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		auto term = parseTerm();
@@ -758,6 +803,7 @@ Node* Parser::parseExpressionPrime() {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			cout << setw(22) << "<ExpressionPrime> =>" << "- <Term> <ExpressionPrime>\n";
+			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		auto term = parseTerm();
@@ -771,7 +817,7 @@ Node* Parser::parseExpressionPrime() {
 	return nullptr;//RETURN NULL
 }
 
-// R26 
+// R26 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
 NodeList* Parser::parseTerm() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -783,7 +829,7 @@ NodeList* Parser::parseTerm() {
 	return parseTermPrime();
 }
 
-// R26 Prime 
+// R26 Prime ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE, HANDLE EPSILON
 NodeList* Parser::parseTermPrime() {
 	token = lex.next();
 	if (token.value == "*")
@@ -791,7 +837,7 @@ NodeList* Parser::parseTermPrime() {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			cout << setw(22) << "<TermPrime> =>" << "* <Factor> <TermPrime>\n";
-			
+			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		auto fact = parseFactor();
@@ -802,6 +848,7 @@ NodeList* Parser::parseTermPrime() {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			cout << setw(22) << "<TermPrime> =>" << "/ <TermPrime>\n";
+			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		auto fact = parseFactor();
@@ -815,7 +862,7 @@ NodeList* Parser::parseTermPrime() {
 	  return nullptr;//RETURN NULL
 }
 
-// R27 
+// R27 ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE
 Node* Parser::parseFactor() {
 	token = lex.next();
 	if (token.value == "-")
