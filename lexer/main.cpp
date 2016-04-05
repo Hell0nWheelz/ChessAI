@@ -75,7 +75,7 @@ string generateSampleFile()
 	outFile.open("generated_sample.txt");
 
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
-		"function convert(fahr:integer)\n{ \nreturn 5*(fahr - 32) /.9; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
+		"function convert(fahr:integer)\n{ \nreturn 5*(fahr - 32) /.9 + 5 -3 *2; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n }\n$$\n";
 	outFile.close();
 

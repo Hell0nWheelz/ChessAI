@@ -159,6 +159,7 @@ NodeList* Parser::parseFunctionDefs() {
 		auto t = getToken();
 		if (token.value == "$$") {
 			// no more definitions
+			holdToken();
 			return defs;
 		}
 		if (token.value == "function")
@@ -345,6 +346,7 @@ NodeList* Parser::parseDeclarationList(string s) {
 			holdToken();
 			return decs;
 		}
+		holdToken();
 		auto dec = parseDeclaration();
 		if (dec) {
 			//adds the declaration to the list
@@ -843,7 +845,7 @@ Node* Parser::parseExpressionPrime() {
 		auto term = parseTerm();
 		auto express = parseExpressionPrime();
 	}
-	else if (token.value == ";" || token.type == OPERATOR )
+	else if (token.value == ";" || token.value == ")" )
 	{
 		return nullptr;//RETURN NULL
 	}
@@ -879,21 +881,19 @@ NodeList* Parser::parseTermPrime() {
 		auto fact = parseFactor();
 		auto term = parseTermPrime();
 	}
-	else if (token.value == ";" || token.type == OPERATOR)
-	{
-		return nullptr;//RETURN NULL
-	}
 	return nullptr;
 }
 
 // R27 PRINT INCOMPLETE
 Node* Parser::parseFactor() {
+	token = getToken();
 	if (token.value == "-")
 	{
 		return parsePrimary();
 	}
 	else
 	{
+		holdToken();
 		return parsePrimary();
 	}
 }
@@ -916,6 +916,7 @@ Node* Parser::parsePrimary() {
 		}
 		else
 		{
+			holdToken();
 			return new Identifier(i);
 		}
 	}
