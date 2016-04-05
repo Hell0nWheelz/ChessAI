@@ -39,11 +39,11 @@ private:
 
 	Declaration* parseDeclaration();				// R12
 
-	NodeList* parseIDs(string s);					// R13
+	NodeList* parseIDs();							// R13 -- Needs fixing
 
 	Node* Parser::parseIdentifier();				// R13 Helper function for identifier
 
-	NodeList* parseStatementList(string s);			// R14
+	NodeList* parseStatementList();					// R14 -- Needs fixing
 
 	Node* parseStatement();							// R15
 
@@ -54,19 +54,19 @@ private:
 	If* parseIf();									// R18
 
 	If* parseIfPrime(Condition *c, Node *s);		// R18 Prime Left factorization
-	Node* parseReturn();						// R19
+	Node* parseReturn();							// R19
 	NodeList* parseWrite();							// R20
 	NodeList* parseRead();							// R21
 	NodeList* parseWhile();							// R22
 	Condition* parseCondition();					// R23
-	//NodeList* parseRelop();							// R24 
+	NodeList* parseRelop();							// R24 
 
 	Node* parseExpression();						// R25
 
 	Node* parseExpressionPrime();					// R25b Recursion (expression prime)
 	NodeList* parseTerm();							// R26
 	NodeList* parseTermPrime();						// R26b Recursion (term prime)
-	Node* parseFactor();						// R27
+	Node* parseFactor();							// R27
 	//NodeList* parsePrimary();						// R28
 	//End of Language Rule Functions
 
@@ -76,7 +76,24 @@ private:
 
 	void throwError(string s, Token &t);
 
-	Token token, id_token;
+	Token token;
+	bool heldToken;
+
+	Token getToken() {
+		if (heldToken)
+		{
+			heldToken = false;
+			return token;
+		}
+		else
+		{
+			return token = lex.next();
+		}
+	}
+
+	void holdToken() {
+		heldToken = true;
+	}
 };
 
 Parser::~Parser()
@@ -101,9 +118,15 @@ RootNode* Parser::parseFile() {
 	//Call Function Definitions
 	auto f = parseFunctionDefs();
 	auto d = parseDeclarationList();
-	auto s = parseStatementList("$$");
-
-	return new RootNode(f, d, s);
+	auto s = parseStatementList();
+	if (token.value == "$$")
+	{
+		if (token.type == eof)
+		{
+			return new RootNode(f, d, s);
+		}
+		throwError("Error, expected EOF MARKER", token);
+	}
 }
 
 // Rule 2&3 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
@@ -111,7 +134,7 @@ NodeList* Parser::parseFunctionDefs() {
 	NodeList* defs = new NodeList;
 	while (true)
 	{
-		token = lex.next();
+		token = getToken();
 		if (token.value == "$$") {
 			// no more definitions
 			return defs;
@@ -145,7 +168,7 @@ FunctionDef* Parser::parseFunction() {
 	token = lex.next();
 	if (token.type != IDENTIFIER)
 	{
-		throwError("Error, expected IDENTIFIER.", id_token);
+		throwError("Error, expected IDENTIFIER.", token);
 	}
 	else
 		// ~~~~ PRINT START ~~~~
@@ -177,7 +200,7 @@ FunctionDef* Parser::parseFunction() {
 	//Body goes until '}'
 	auto body = parseBody();
 
-	return new FunctionDef(id_token, paramlist, declist, body);
+	return new FunctionDef(token, paramlist, declist, body);
 }
 
 // Rule 5&6 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
@@ -231,7 +254,12 @@ ParamDef* Parser::parseParameter() {
 		cout << setw(22) << "<Parameter> =>" << "<IDs> : <Qualifier>\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	auto IDs = parseIDs(":"); //since it's a parameter it ends on ':'
+	auto IDs = parseIDs(); 
+	token = getToken();
+	if (token.value != ":")
+	{
+		throwError("Error, expected ':'.", token);
+	}
 	auto qualifier = parseQualifier();
 	return new ParamDef(IDs, qualifier);
 }
@@ -316,12 +344,12 @@ Declaration* Parser::parseDeclaration() {
 }
 
 // Rule 13 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETED
-NodeList* Parser::parseIDs(string s) {
-	token = lex.next();
+NodeList* Parser::parseIDs() {
+	token = getToken();
 	NodeList* ids = new NodeList;
 	while (true)
 	{
-		if (token.value == s) {//
+		if (token.type != IDENTIFIER) {//
 			// ~~~~ PRINT START ~~~~
 			if (print)
 			{
@@ -330,6 +358,7 @@ NodeList* Parser::parseIDs(string s) {
 			}
 			// ~~~~ PRINT END ~~~~
 			// no more ids
+			holdToken();
 			return ids;
 		}
 		auto id = parseIdentifier();
@@ -355,19 +384,19 @@ NodeList* Parser::parseIDs(string s) {
 
 // Rule 13 Helper ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
 Node* Parser::parseIdentifier() {
-	id_token = lex.next();
-	if (id_token.type != IDENTIFIER)
+	token = lex.next();
+	if (token.type != IDENTIFIER)
 	{
-		throwError("Error, expected IDENTIFIER.", id_token);
+		throwError("Error, expected IDENTIFIER.", token);
 	}
 	else
 		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
-			displayToken(id_token);
+			displayToken(token);
 		}
 	// ~~~~ PRINT END ~~~~
-	return new Identifier(id_token);
+	return new Identifier(token);
 }
 
 // Rule 14 ~~~~~~ Completed ~~~~~~~~~~ NO PRINT NEEDED
@@ -509,16 +538,16 @@ Assign* Parser::parseAssign() {
 		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>\n\n";
 	}
 	// ~~~~ PRINT END ~~~~
-	id_token = lex.next();
-	if (id_token.type != IDENTIFIER)
+	token = lex.next();
+	if (token.type != IDENTIFIER)
 	{
-		throwError("Error, expected IDENTIFIER.", id_token);
+		throwError("Error, expected IDENTIFIER.", token);
 	}
 	else
 		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
-		displayToken(id_token);
+		displayToken(token);
 		}
 	// ~~~~ PRINT END ~~~~
 
@@ -536,7 +565,7 @@ Assign* Parser::parseAssign() {
 	// ~~~~ PRINT END ~~~~
 
 	auto express = parseExpression();
-	return new Assign(id_token, express);
+	return new Assign(token, express);
 }
 
 // Rule 18 ~~~~~~ Completed ~~~~~~~~~~ PRINT COMPLETE
@@ -561,7 +590,7 @@ If* Parser::parseIf() {
 		// ~~~~ PRINT END ~~~~
 
 	auto cond = parseCondition();
-	token = lex.next();
+	token = getToken();
 	if (token.value != ")")
 	{
 		throwError("error, expected token type SEPARATOR, value (", token);
@@ -756,7 +785,6 @@ Condition* Parser::parseCondition() {
 	}
 	// ~~~~ PRINT END ~~~~
 	auto exp1 = parseExpression();
-	token = lex.next();
 	if (token.value != "=" && token.value != "/=" && token.value != ">" && token.value != "<" && token.value != "=>" && token.value != "<=")
 	{
 		throwError("error, expected relational operator token value: = or /= or > or < or => or <=", token);
@@ -769,6 +797,8 @@ Condition* Parser::parseCondition() {
 	// ~~~~ PRINT END ~~~~
 
 	auto exp2 = parseExpression();
+	token = getToken();
+	holdToken();
 	return new Condition(token, exp1, exp2);
 }
 
@@ -822,9 +852,10 @@ NodeList* Parser::parseTerm() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<Term> =>" << "<Factor> <TermPrime>\n";
-		system("Pause");
+		//system("Pause");
 	}
 	// ~~~~ PRINT END ~~~~
+
 	auto factor = parseFactor();
 	return parseTermPrime();
 }
@@ -864,124 +895,52 @@ NodeList* Parser::parseTermPrime() {
 
 // R27 ~~~~~~ Completed ~~~~~~~~~~ PRINT INCOMPLETE
 Node* Parser::parseFactor() {
-	token = lex.next();
 	if (token.value == "-")
 	{
-		// ~~~~ PRINT START ~~~~
-		if (print) {
-			cout << setw(22) << "<Factor> =>" << "- <Primary>\n";
-			displayToken(token);
-		}
-		// ~~~~ PRINT END ~~~~
-
-		token = lex.next();
-		if (token.type == IDENTIFIER)
-		{
-			auto sep = lex.next();
-			if (sep.value == "(")
-			{
-				return parseIDs(";");
-			}
-			else
-			{
-				throwError("Error, expected '('.", sep);
-			}
-		}
-		else if (token.type == INTEGER)
-		{
-			return new Integer(token);
-		}
-		else if (token.value == "(")
-		{
-			return parseExpression();
-		}
-		else if (token.type == REAL)
-		{
-			return new Real(token);
-		}
-		else if (token.value == "true" || token.value == "false")
-		{
-			return new Bool(token);
-		}
-		else
-		{
-			throwError("Error, expected a PRIMARY", token);
-		}
+		return parsePrimary();
 	}
 	else
 	{
-		if (token.type == IDENTIFIER)
-		{
-			token = lex.next();
-			if (token.value == "(")
-			{
-				return parseIDs(";");
-			}
-			else
-			{
-				throwError("Error, expected '('.", token);
-			}
-		}
-		else if (token.type == INTEGER)
-		{
-			return new Integer(token);
-		}
-		else if (token.value == "(")
-		{
-			return nullptr;
-		}
-		else if (token.type == REAL)
-		{
-			return new Real(token);
-		}
-		else if (token.value == "true" || token.value == "false")
-		{
-			return new Bool(token);
-		}
-		else
-		{
-			throwError("Error, expected a PRIMARY", token);
-		}
+		return parsePrimary();
 	}
 }
 
-/*
 // R28
 NodeList* Parser::parsePrimary() {
-auto token = lex.next();
-switch (token.type){
-case 0:
-//check if 1 or multiple identifiers
-case 1:
-//check if KEYWORD is "true" or "false"
-if (token.value == "true" || token.value == "false")
-{
-//return keyword
+	token = getToken();
+	if (token.type == IDENTIFIER)
+	{
+		token = lex.next();
+		if (token.value == "(")
+		{
+			return parseIDs(";");
+		}
+		else
+		{
+			throwError("Error, expected '('.", token);
+		}
+	}
+	else if (token.type == INTEGER)
+	{
+		return new Integer(token);
+	}
+	else if (token.value == "(")
+	{
+		return nullptr;
+	}
+	else if (token.type == REAL)
+	{
+		return new Real(token);
+	}
+	else if (token.value == "true" || token.value == "false")
+	{
+		return new Bool(token);
+	}
+	else
+	{
+		throwError("Error, expected a PRIMARY", token);
+	}
 }
-case 2:
-//parse Real
-case 3:
-// parse Integer
-case 5:
-//check if SEPARATOR is '('
-if (token.value == "(")
-{
-//check if ( <Expression> )
-auto express = parseExpression();
-auto tok = lex.next();
-
-if (tok.value == ")")
-{
-//return
-}
-}
-default:
-throwError("error, expected IDENTIFIER or integer or ( or real or true or false", token);
-break;
-}
-
-}
-*/
 
 void Parser::displayToken(Token t)
 {
