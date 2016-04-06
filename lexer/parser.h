@@ -11,12 +11,6 @@
 
 using namespace std;
 
-//~~~~~~~~~~ Things To Do ~~~~~~~~~~~
-//Add Functions for each rule
-//In each function build the node we're on and get the children from subfunctions
-//	and return the node to the caller
-
-
 class Parser
 {
 	Lexer lex;
