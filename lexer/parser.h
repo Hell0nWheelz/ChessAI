@@ -44,6 +44,7 @@ private:
 	Identifier* parseIdentifier();					// R13 Helper function for identifier
 
 	NodeList* parseStatementList();					// R14 
+
 	Node* parseStatement(bool doThrow);				// R15
 
 	NodeList* parseCompound();						// R16
@@ -53,12 +54,18 @@ private:
 	If* parseIf();									// R18
 
 	If* parseIfPrime(Condition *c, Node *s);		// R18 Prime Left factorization
+	
 	Return* parseReturn();							// R19
+
 	Write* parseWrite();							// R20
+
 	Read* parseRead();								// R21
+
 	While* parseWhile();							// R22
+
 	Condition* parseCondition();					// R23
-	//NodeList* parseRelop();						// R24 
+
+	//NodeList* parseRelop();						// R24 Wrote without this function
 
 	Node* parseExpression();						// R25
 
@@ -141,8 +148,16 @@ RootNode* Parser::parseFile() {
 	token = getToken();
 	if (token.value == "$$")
 	{
+		token = getToken();
 		if (token.type == eof)
 		{
+			// ~~~~ PRINT START ~~~~
+			if (print)
+			{
+				cout << endl << endl << "THE FILE HAS BEEN PARSED SUCCESSFULLY!" << endl;
+			}
+			// ~~~~ PRINT END ~~~~
+			
 			return new RootNode(f, d, s);
 		}
 		throwError("Error, expected EOF MARKER", token);
@@ -458,6 +473,7 @@ Node* Parser::parseStatement(bool doThrow) {
 			cout << setw(22) << "<Statement> =>" << "<Assign>\n";
 		}
 		// ~~~~ PRINT END ~~~~
+		holdToken();
 		return parseAssign();
 	}
 	else if (token.value == "if") //If
@@ -468,6 +484,7 @@ Node* Parser::parseStatement(bool doThrow) {
 			cout << setw(22) << "<Statement> =>" << "<If>\n";
 		}
 		// ~~~~ PRINT END ~~~~
+		holdToken();
 		return parseIf();
 	}
 	else if (token.value == "return") //Return
@@ -562,12 +579,11 @@ Assign* Parser::parseAssign() {
 	{
 		throwError("Error, expected IDENTIFIER.", token);
 	}
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print)
-		{
-		displayToken(token);
-		}
+	// ~~~~ PRINT START ~~~~
+	if (print)
+	{
+	displayToken(token);
+	}
 	// ~~~~ PRINT END ~~~~
 
 	token = getToken();
@@ -584,15 +600,26 @@ Assign* Parser::parseAssign() {
 	// ~~~~ PRINT END ~~~~
 
 	auto express = parseExpression();
+	token = getToken();
+	if (token.value != ";")
+	{
+		throwError("Error, expected ';'.", token);
+	}
 	return new Assign(token, express);
 }
 
 // Rule 18 PRINT COMPLETE
 If* Parser::parseIf() {
+	token = getToken();
+	if (token.value != "if")
+	{
+		throwError("Error, expected 'IF'.", token);
+	}
+	
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<If> =>" << "( <Condition> ) <Statement> <IfPrime>\n";
+		cout << setw(22) << "<If> =>" << "if (<Condition>)<Statement> endif | if (<Condition>)<Statement> else <Statement> endif" << endl;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -600,44 +627,42 @@ If* Parser::parseIf() {
 	{
 		throwError("Error, expected '('.", token);
 	}
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print)
-		{
-			displayToken(token);
-		}
-		// ~~~~ PRINT END ~~~~
+	// ~~~~ PRINT START ~~~~
+	if (print)
+	{
+		displayToken(token);
+	}
+	// ~~~~ PRINT END ~~~~
 
-	auto cond = parseCondition();
+	auto condition = parseCondition();
 	token = getToken();
 	if (token.value != ")")
 	{
-		throwError("error, expected token type SEPARATOR, value (", token);
+		throwError("Error, expected ')'", token);
 	}
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print)
-		{
+	// ~~~~ PRINT START ~~~~
+	if (print)
+	{
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
 	auto statement = parseStatement(true);
-	return parseIfPrime(cond, statement);
+	return parseIfPrime(condition, statement);
 }
 
 // R18 Prime PRINT COMPLETE
-If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
+If* Parser::parseIfPrime(Condition *condition, Node *ifStatement) {
 	token = getToken();
 	if (token.value == "endif")
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
-			cout << setw(22) << "<IfPrime> =>" << "endif\n";
+			cout << setw(22) << "<IfPrime> =>" << "endif | else <Statement> endif" << endl;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-		return new If(cond, ifStatement, nullptr);
+		return new If(condition, ifStatement, nullptr);
 	}
 	else if (token.value == "else")
 	{
@@ -650,18 +675,16 @@ If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
 		// ~~~~ PRINT END ~~~~
 
 		auto elseStatement = parseStatement(true);
-		token = getToken();
-		if (token.value == "endif")
+		if (!dynamic_cast<If*>(elseStatement))
 		{
-			// ~~~~ PRINT START ~~~~
-			if (print)
+			token = getToken();
+			if (token.value != "endif")
 			{
-				displayToken(token);
+				throwError("Error, expected 'ENDIF'.", token);
 			}
-			// ~~~~ PRINT END ~~~~
-			return new If(cond, ifStatement, elseStatement);
 		}
-		return nullptr;//RETURN NULL
+		
+		return new If(condition, ifStatement, elseStatement);
 	}
 	else
 	{
