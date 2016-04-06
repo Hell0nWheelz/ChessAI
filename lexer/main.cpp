@@ -1,6 +1,6 @@
 /* Lexer by Micah Madru & Bryan Bonner
-*	CPSC 323 Assignment 1
-*	March 7th, 2016
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
 *
 */
 #include <iostream>
@@ -19,6 +19,7 @@ int main() {
 	char pause;
 	string infile, outfile;
 	ofstream file;
+	bool print = false;
 
 	cout << "Enter in the name of your test file or enter in [Gen] to generate a sample file: ";
 	//cin >> infile;
@@ -39,7 +40,7 @@ int main() {
 	Token token;
 
 	file.open(outfile);
-	if (file.is_open())
+	if (file.is_open() && print)
 	{
 		file << left << setw(18) << "Token" << setw(18) << "Lexeme" << "\n" << endl;
 		cout << left << setw(18) << "Token" << setw(18) << "Lexeme" << setw(18) << "Line Number\n" << endl;
@@ -52,13 +53,13 @@ int main() {
 
 		file.close();
 
-		cout << "Lexer complete! Press a key to continue... ";
+		cout << "Lexer complete! Press a key to continue... " << endl;
 		//cin.ignore();
 		//pause = cin.get();
 	}
 	else {
-		cout << "Unable to open " << outfile << endl;
-		cout << "Press a key to continue... ";
+		//cout << "Unable to open " << outfile << endl;
+		//cout << "Press a key to continue... ";
 		cin.ignore();
 		pause = cin.get();
 	}
@@ -75,8 +76,9 @@ string generateSampleFile()
 	outFile.open("generated_sample.txt");
 
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
-		"function convert(fahr:integer)\n{ \nreturn 5*(fahr - 32) /.9; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
-		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n }\n$$\n";
+		"function convert(fahr:integer)\n boolean yes, no; { \nreturn 5*(fahr - 32) /.9 + 5 -3 *2; \n}\n$$\ninteger low, high, step;[*declarations *]\n"
+		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n if (x > y)if(a=b){a:=b;} endif else if(x < y) b := a; else { a := c; } endif    }\n$$\n";
+
 	outFile.close();
 
 	return "generated_sample.txt";

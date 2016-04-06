@@ -1,3 +1,8 @@
+/* Lexer by Micah Madru & Bryan Bonner
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
+*
+*/
 #include <vector>
 #include <iostream>
 #include "lexer.h"
@@ -92,6 +97,7 @@ void Parser::throwError(string s, Token &t) {
 	}
 	catch (...) {
 		cout << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
+		system("pause");
 		exit(666);
 		return;
 	}
@@ -106,6 +112,11 @@ RootNode* Parser::parseFile() {
 	{
 		throwError("Error, expected '&&'.", token);
 	}
+	// ~~~~ PRINT START ~~~~
+	if (print) {
+		displayToken(token);
+	}
+	// ~~~~ PRINT END ~~~~
 
 	// <Opt Declaration List>
 	auto d = parseDeclarationList("$$");
@@ -114,20 +125,30 @@ RootNode* Parser::parseFile() {
 	{
 		throwError("Error, expected '&&'.", token);
 	}
+	// ~~~~ PRINT START ~~~~
+	if (print) {
+		displayToken(token);
+	}
+	// ~~~~ PRINT END ~~~~
 
 	// <Statement List>
 	auto s = parseStatementList();
 	token = getToken();
 	if (token.value == "$$")
 	{
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			displayToken(token);
+		}
+		// ~~~~ PRINT END ~~~~
 		token = getToken();
 		if (token.type == eof)
 		{
-			system("PAUSE");
 			// ~~~~ PRINT START ~~~~
 			if (print)
 			{
 				cout << endl << endl << "THE FILE HAS BEEN PARSED SUCCESSFULLY!" << endl;
+				system("pause");
 			}
 			// ~~~~ PRINT END ~~~~
 
@@ -335,7 +356,7 @@ NodeList* Parser::parseDeclarationList(string s) {
 		}
 		if (print)
 		{
-			cout << setw(22) << "<Declaration List> =>" << "<Declaration> ; <Declaration List>\n";
+			displayToken(token);
 		}
 	}
 }
@@ -345,7 +366,7 @@ Declaration* Parser::parseDeclaration() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<Declaration> =>" << "<Qualifier> <IDs>\n";
+		cout << setw(22) << "<Declaration> =>" << "<Qualifier> <IDs> ;\n";
 	}
 	// ~~~~ PRINT END ~~~~
 	auto qualifier = parseQualifier();
@@ -545,7 +566,7 @@ Assign* Parser::parseAssign() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>\n\n";
+		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>\n";
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -553,13 +574,6 @@ Assign* Parser::parseAssign() {
 	{
 		throwError("Error, expected IDENTIFIER.", token);
 	}
-	// ~~~~ PRINT START ~~~~
-	if (print)
-	{
-		displayToken(token);
-	}
-	// ~~~~ PRINT END ~~~~
-
 	token = getToken();
 	if (token.value != ":=")
 	{
@@ -674,11 +688,6 @@ If* Parser::parseIfPrime(Condition *condition, Node *ifStatement) {
 // R19 <Return> => return ; | return <Expression>
 Return* Parser::parseReturn() {
 	token = getToken();
-	// ~~~~ PRINT START ~~~~ we have to print "TOKEN: return "before printing the rule in this case
-	if (print) { 
-		displayToken(token);
-	}
-	// ~~~~ PRINT END ~~~~
 	if (token.value != "return")
 	{
 		throwError("Error, expected RETURN.", token);
@@ -698,7 +707,6 @@ Return* Parser::parseReturn() {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			cout << setw(22) << "<Return> =>" << "return <Expression>;" << endl;
-			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -723,7 +731,7 @@ Return* Parser::parseReturn() {
 Write* Parser::parseWrite() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Write> =>" << "printf ( <Expression> );\n;";
+		cout << setw(22) << "<Write> =>" << "printf ( <Expression> );\n";
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -772,7 +780,7 @@ Write* Parser::parseWrite() {
 Read* Parser::parseRead() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n;";
+		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n";
 	}
 	// ~~~~ PRINT END ~~~~
 
@@ -901,7 +909,7 @@ Node* Parser::parseExpression() {
 	return exp;
 }
 
-// R25
+// R25 <ExpressionPrime> => + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | empty
 Node* Parser::parseExpressionPrime(Node* lhs) {
 	Node* rhs = nullptr;
 	auto op = getToken();
@@ -917,6 +925,11 @@ Node* Parser::parseExpressionPrime(Node* lhs) {
 	}
 	else
 	{
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			cout << setw(22) << "<ExpressionPrime> =>" << "Empty\n";
+		}
+		// ~~~~ PRINT END ~~~~
 		holdToken();
 	}
 	return rhs ? new BinaryExpression(op, lhs, rhs) : lhs;
@@ -940,8 +953,8 @@ Node* Parser::parseTermPrime(Node* lhs) {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<TermPrime> => " + token.value + " <Factor> <TermPrime>\n";
 			displayToken(token);
+			cout << setw(22) << "<TermPrime> =>" << token.value + " <Factor> <TermPrime>\n";	
 		}
 		// ~~~~ PRINT END ~~~~
 		auto rhs = parseTermPrime(parseFactor());
@@ -960,7 +973,7 @@ Node* Parser::parseFactor() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Factor> => " << "- <Primary>\n";
+			cout << setw(22) << "<Factor> =>" << "- <Primary>\n";
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -970,8 +983,7 @@ Node* Parser::parseFactor() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Factor> => " << "<Primary>\n";
-			displayToken(token);
+			cout << setw(22) << "<Factor> =>" << "<Primary>\n";
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -979,47 +991,94 @@ Node* Parser::parseFactor() {
 	}
 }
 
-// R28
+// R28 <Primary> => <Identifier> | <Integer> | <Real> | <Identifier> ( <IDs> ) | (Expression) | true | false
 Node* Parser::parsePrimary() {
 	token = getToken();
+	// ~~~~ PRINT START ~~~~
+	if (print) {
+		displayToken(token);
+	}
+	// ~~~~ PRINT END ~~~~
 	if (token.type == IDENTIFIER)
 	{
 		auto i = token;
 		token = getToken();
+
 		if (token.value == "(")
 		{
+			// ~~~~ PRINT START ~~~~
+			if (print) {
+				cout << setw(22) << "<Primary> =>" << "<Identifier> ( <IDs> ))\n";
+				displayToken(token);
+			}
+			// ~~~~ PRINT END ~~~~
 			auto ids = parseIDs();
 			token = getToken();
 			if (token.value == ")")
 			{
+				// ~~~~ PRINT START ~~~~
+				if (print) {
+					displayToken(token);
+				}
+				// ~~~~ PRINT END ~~~~
 				return new FunctionCall(token, ids);
 			}
 		}
 		else
 		{
+			// ~~~~ PRINT START ~~~~
+			if (print) {
+				cout << setw(22) << "<Primary> =>" << "<Identifier>\n";
+			}
+			// ~~~~ PRINT END ~~~~
 			holdToken();
 			return new Identifier(i);
 		}
 	}
 	else if (token.type == INTEGER)
 	{
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			cout << setw(22) << "<Primary> => " << "<Integer>\n";
+		}
+		// ~~~~ PRINT END ~~~~
 		return new Integer(token);
 	}
 	else if (token.value == "(")
 	{
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			cout << setw(22) << "<Primary> => " << "( <Expression> )\n";
+		}
+		// ~~~~ PRINT END ~~~~
 		auto exp = parseExpression();
 		token = getToken();
 		if (token.value != ")")
 		{
 			throwError("Error, expected ')'.", token);
 		}
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			displayToken(token);
+		}
+		// ~~~~ PRINT END ~~~~
 	}
 	else if (token.type == REAL)
 	{
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			cout << setw(22) << "<Primary> => " << "<Real>\n";
+		}
+		// ~~~~ PRINT END ~~~~
 		return new Real(token);
 	}
 	else if (token.value == "true" || token.value == "false")
 	{
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			cout << setw(22) << "<Primary> => " << token.value;
+		}
+		// ~~~~ PRINT END ~~~~
 		return new Bool(token);
 	}
 	else

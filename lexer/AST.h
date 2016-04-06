@@ -1,11 +1,6 @@
 #include <vector>
 #include <iostream>
 
-//~~~~ To Do ~~~~~~~
-//Add constructors (pass null if empty)
-//Add destructors
-//Dicide if print will be in Node or Parser
-
 using namespace std;
 
 class Node
@@ -51,10 +46,10 @@ class FunctionDef : public Node {
 public:
 	FunctionDef(Token id, NodeList* params, NodeList* declarations, NodeList* body)
 		//Default Constructor Syntax
-		: funcID(id), params(params), decls(declarations), body(body) { } 
+		: funcID(id), params(params), decls(declarations), body(body) { }
 private:
 	Token funcID;
-	NodeList *params; 
+	NodeList *params;
 	NodeList *decls;
 	NodeList *body;
 };
@@ -124,10 +119,10 @@ private:
 
 class While : public Node {
 public:
-	While(Condition* cond, NodeList* body) : condition(cond), body(body) {}
+	While(Condition* cond, Node* body) : condition(cond), body(body) {}
 private:
 	Condition* condition;
-	NodeList* body;
+	Node* body;
 };
 
 class BinaryExpression : public Node {
