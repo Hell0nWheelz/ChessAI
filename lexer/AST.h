@@ -124,10 +124,10 @@ private:
 
 class While : public Node {
 public:
-	While(Condition* cond, NodeList* body) : condition(cond), body(body) {}
+	While(Condition* cond, Node* body) : condition(cond), body(body) {}
 private:
 	Condition* condition;
-	NodeList* body;
+	Node* body;
 };
 
 class BinaryExpression : public Node {

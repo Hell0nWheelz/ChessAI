@@ -35,17 +35,16 @@ private:
 
 	NodeList* parseBody();							// R9
 
-	NodeList* parseDeclarationList(string s);				// R10&11
+	NodeList* parseDeclarationList(string s);		// R10&11
 
 	Declaration* parseDeclaration();				// R12
 
-	NodeList* parseIDs();							// R13 -- Needs fixing
+	NodeList* parseIDs();							// R13 
 
-	Node* parseIdentifier();				// R13 Helper function for identifier
+	Identifier* parseIdentifier();					// R13 Helper function for identifier
 
-	NodeList* parseStatementList();					// R14 -- Needs fixing
-
-	Node* parseStatement();							// R15
+	NodeList* parseStatementList();					// R14 
+	Node* parseStatement(bool doThrow);				// R15
 
 	NodeList* parseCompound();						// R16
 
@@ -54,18 +53,18 @@ private:
 	If* parseIf();									// R18
 
 	If* parseIfPrime(Condition *c, Node *s);		// R18 Prime Left factorization
-	Node* parseReturn();							// R19
-	NodeList* parseWrite();							// R20
-	Read* parseRead();							// R21
-	NodeList* parseWhile();							// R22
+	Return* parseReturn();							// R19
+	Write* parseWrite();							// R20
+	Read* parseRead();								// R21
+	While* parseWhile();							// R22
 	Condition* parseCondition();					// R23
-	//NodeList* parseRelop();							// R24 
+	//NodeList* parseRelop();						// R24 
 
 	Node* parseExpression();						// R25
 
-	Node* parseExpressionPrime();					// R25b Recursion (expression prime)
-	NodeList* parseTerm();							// R26
-	NodeList* parseTermPrime();						// R26b Recursion (term prime)
+	Node* parseExpressionPrime(Node* lhs_exp);		// R25b Recursion (expression prime)
+	Node* parseTerm();								// R26
+	Node* parseTermPrime(Node* lhs_exp); 			// R26b Recursion (term prime)
 	Node* parseFactor();							// R27
 	Node* parsePrimary();							// R28
 	//End of Language Rule Functions
@@ -404,7 +403,7 @@ NodeList* Parser::parseIDs() {
 }
 
 // Rule 13 Helper PRINT COMPLETE
-Node* Parser::parseIdentifier() {
+Identifier* Parser::parseIdentifier() {
 	if (token.type != IDENTIFIER)
 	{
 		throwError("Error, expected IDENTIFIER.", token);
@@ -421,23 +420,25 @@ Node* Parser::parseIdentifier() {
 // Rule 14 NO PRINT NEEDED
 NodeList* Parser::parseStatementList() {
 	NodeList* statements = new NodeList;
+	bool doThrow = true;
 	while (true)
 	{
-		token = getToken();
-		if (token.value == "}" ) {
-			holdToken();
-			return statements;
-		}
-		auto statement = parseStatement();
+		auto statement = parseStatement(doThrow);
+		doThrow = false;
 		if (statement) {
 			//adds the statement to the list
 			statements->add(statement);
+		}
+		else
+		{
+			return statements;
 		}
 	}
 }
 
 // Rule 15 PRINT COMPLETE
-Node* Parser::parseStatement() {
+Node* Parser::parseStatement(bool doThrow) {
+	token = getToken();
 	if (token.value == "{") //Compound 
 	{
 		// ~~~~ PRINT START ~~~~
@@ -489,6 +490,7 @@ Node* Parser::parseStatement() {
 			cout << setw(22) << "<Statement> =>" << "<Write>\n";
 		}
 		// ~~~~ PRINT END ~~~~
+		holdToken();
 		return parseWrite();
 	}
 	else if (token.value == "scanf") //Read
@@ -499,6 +501,7 @@ Node* Parser::parseStatement() {
 			cout << setw(22) << "<Statement> =>" << "<Read>\n";
 		}
 		// ~~~~ PRINT END ~~~~
+		holdToken();
 		return parseRead();
 	}
 	else if (token.value == "while") //While
@@ -509,13 +512,15 @@ Node* Parser::parseStatement() {
 			cout << setw(22) << "<Statement> =>" << "<While>\n";
 		}
 		// ~~~~ PRINT END ~~~~
+		holdToken();
 		return parseWhile();
 	}
-	else
+	if (doThrow)
 	{
-		throwError("Error, expected starting token of a STATEMENT.", token);
+			throwError("Error, expected starting token of a STATEMENT.", token);
 	}
-	return NULL;//may not need
+	holdToken();
+	return nullptr;
 }
 
 // Rule 16 PRINT COMPLETED
@@ -616,7 +621,7 @@ If* Parser::parseIf() {
 		displayToken(token);
 		}
 	// ~~~~ PRINT END ~~~~
-	auto statement = parseStatement();
+	auto statement = parseStatement(true);
 	return parseIfPrime(cond, statement);
 }
 
@@ -644,7 +649,7 @@ If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
 		}
 		// ~~~~ PRINT END ~~~~
 
-		auto elseStatement = parseStatement();
+		auto elseStatement = parseStatement(true);
 		token = getToken();
 		if (token.value == "endif")
 		{
@@ -666,7 +671,12 @@ If* Parser::parseIfPrime(Condition *cond, Node *ifStatement) {
 }
 
 // R19 PRINT COMPLETE
-Node* Parser::parseReturn() {
+Return* Parser::parseReturn() {
+	token = getToken();
+	if (token.value != "return")
+	{
+		throwError("Error, expected RETURN.", token);
+	}
 	token = getToken();
 	if (token.value == ";") {
 		// ~~~~ PRINT START ~~~~
@@ -685,17 +695,33 @@ Node* Parser::parseReturn() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-		return parseExpression();
+		holdToken();
+		auto exp = parseExpression();
+
+		token = getToken();
+		if (token.value != ";")
+		{
+			throwError("Error, expected ';'.", token);
+		}
+
+		return new Return(exp);
 	}
 }
 
 // R20 PRINT COMPLETE
-NodeList* Parser::parseWrite() {
+Write* Parser::parseWrite() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<Write> =>" << "printf ( <Expression> );\n;";
 	}
 	// ~~~~ PRINT END ~~~~
+
+	token = getToken();
+	if (token.value != "printf")
+	{
+		throwError("Error, expected 'PRINTF'.", token);
+	}
+
 	token = getToken();
 	if (token.value != "(") {
 		throwError("Error, expected token value '('.", token);
@@ -706,26 +732,26 @@ NodeList* Parser::parseWrite() {
 		displayToken(token);
 		}
 	// ~~~~ PRINT END ~~~~
-	auto express = parseExpression();
+	auto exp = parseExpression();
 	token = getToken();
 	if (token.value != ")")
 		throwError("error, expected token value \")\"", token);
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print) {
+	// ~~~~ PRINT START ~~~~
+	if (print) {
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
-	if (token.value != ";")
-		throwError("error, expected token value \";\"", token);
+	if (token.value != ";") {
+		throwError("Error, expected token value ';'.", token);
+	}
 	else
-		// ~~~~ PRINT START ~~~~
-		if (print) {
+	// ~~~~ PRINT START ~~~~
+	if (print) {
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
-	return nullptr;//RETURN NULL
+	return new Write(exp);//RETURN NULL
 }
 
 // R21 PRINT COMPLETE
@@ -735,6 +761,13 @@ Read* Parser::parseRead() {
 		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n;";
 	}
 	// ~~~~ PRINT END ~~~~
+
+	token = getToken();
+	if (token.value != "scanf")
+	{
+		throwError("Error, expected 'SCANF'.", token);
+	}
+
 	token = getToken();
 	if (token.value != "(")
 	{
@@ -761,14 +794,15 @@ Read* Parser::parseRead() {
 }
 
 // R22 PRINT COMPLETE
-NodeList* Parser::parseWhile() {
+While* Parser::parseWhile() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>\n";
 	}
 	// ~~~~ PRINT END ~~~~
+	token = getToken();
 	if (token.value != "while") {
-		throwError("error, expected token value \"while\"", token);
+		throwError("Error, expected 'WHILE'", token);
 	}
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -785,7 +819,7 @@ NodeList* Parser::parseWhile() {
 	}
 	// ~~~~ PRINT END ~~~~
 
-	auto cond = parseCondition();
+	auto condition = parseCondition();
 	token = getToken();
 	if (token.value != ")") {
 		throwError("error, expected token value ')'.", token);
@@ -796,33 +830,33 @@ NodeList* Parser::parseWhile() {
 	}
 	// ~~~~ PRINT END ~~~~
 
-	auto statement = parseStatement();
+	auto statement = parseStatement(true);
 
-	return nullptr;//RETURN NULL
+	return new While(condition, statement);
 }
 
 // R23 PRINT COMPLETE
 Condition* Parser::parseCondition() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Condition> =>" << "<Expression> <Relop> <Expression>";
+		cout << setw(22) << "<Condition> =>" << "<Expression> <Relop> <Expression>" << endl;
 	}
 	// ~~~~ PRINT END ~~~~
+
 	auto exp1 = parseExpression();
+	token = getToken();
 	if (token.value != "=" && token.value != "/=" && token.value != ">" && token.value != "<" && token.value != "=>" && token.value != "<=")
 	{
-		throwError("error, expected relational operator token value: = or /= or > or < or => or <=", token);
+		throwError("Error, expected RELATIONAL OPERATOR.", token);
 	}
-	else
-		// ~~~~ PRINT START ~~~~
-		if (print) {
+	// ~~~~ PRINT START ~~~~
+	if (print) {
 		displayToken(token);
-		}
+	}
 	// ~~~~ PRINT END ~~~~
 
 	auto exp2 = parseExpression();
-	token = getToken();
-	holdToken();
+
 	return new Condition(token, exp1, exp2);
 }
 
@@ -836,12 +870,14 @@ Node* Parser::parseExpression() {
 	}
 	// ~~~~ PRINT END ~~~~
 	auto term = parseTerm();
-	auto exp = parseExpressionPrime();
-	return nullptr;
+	auto exp = parseExpressionPrime(term);
+	return exp;
 }
 
 // R25 Prime PRINT INCOMPLETE, HANDLE EPSILON
-Node* Parser::parseExpressionPrime() {
+Node* Parser::parseExpressionPrime(Node* lhs) {
+	Node* rhs = nullptr;
+	auto op = getToken();
 	if (token.value == "+" || token.value == "-")
 	{
 		// ~~~~ PRINT START ~~~~
@@ -850,34 +886,30 @@ Node* Parser::parseExpressionPrime() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-		auto term = parseTerm();
-		auto express = parseExpressionPrime();
+		rhs = parseExpressionPrime(parseTerm());
 	}
-	else if (token.value == ";" || token.value == ")" )
+	else
 	{
-		return nullptr;//RETURN NULL
+		holdToken();
 	}
-	//need to handle printing epsilon 
-	
+	return rhs ? new BinaryExpression(op, lhs, rhs) : lhs;
 }
 
 // R26 PRINT COMPLETE
-NodeList* Parser::parseTerm() {
+Node* Parser::parseTerm() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		cout << setw(22) << "<Term> =>" << "<Factor> <TermPrime>\n";
 		//system("Pause");
 	}
 	// ~~~~ PRINT END ~~~~
-	auto factor = parseFactor();
-	auto term = parseTermPrime();
-	return nullptr;
-	
+	return parseTermPrime(parseFactor());
 }
 
 // R26 Prime PRINT INCOMPLETE, HANDLE EPSILON
-NodeList* Parser::parseTermPrime() {
-	token = getToken();
+Node* Parser::parseTermPrime(Node* lhs) {
+	auto op = getToken();
+	auto rhs = nullptr;
 	if (token.value == "*" || token.value == "/")
 	{
 		// ~~~~ PRINT START ~~~~
@@ -886,18 +918,21 @@ NodeList* Parser::parseTermPrime() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-		auto fact = parseFactor();
-		auto term = parseTermPrime();
+		auto rhs = parseTermPrime(parseFactor());
 	}
-	return nullptr;
+	else
+	{
+		holdToken();
+	}
+	return rhs ? new BinaryExpression(op, lhs, rhs) : lhs;
 }
 
 // R27 PRINT INCOMPLETE
 Node* Parser::parseFactor() {
-	token = getToken();
+	auto op = getToken();
 	if (token.value == "-")
 	{
-		return parsePrimary();
+		return new UrinaryExpression(op, parsePrimary());
 	}
 	else
 	{
@@ -934,7 +969,12 @@ Node* Parser::parsePrimary() {
 	}
 	else if (token.value == "(")
 	{
-		return parseExpression();
+		auto exp = parseExpression();
+		token = getToken();
+		if (token.value != ")")
+		{
+			throwError("Error, expected ')'.", token);
+		}
 	}
 	else if (token.type == REAL)
 	{
