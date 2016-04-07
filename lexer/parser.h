@@ -3,20 +3,23 @@
 *	April 6th, 2016
 *
 */
+#include <string>
+#include <fstream>
 #include <vector>
 #include <iostream>
 #include "lexer.h"
 #include "AST.h"
-#include <string>
+
 
 using namespace std;
 
 class Parser
 {
+	
 	Lexer lex;
 
 public:
-	Parser(string filename) : lex(filename) { }
+	Parser(string inFilename, string outFilename) : lex(inFilename) { outFile.open(outFilename); }
 	~Parser();
 
 	//Start of Language Rule Functions
@@ -59,6 +62,8 @@ private:
 	bool heldToken = false;
 	Token getToken();
 	void holdToken();
+
+	ofstream outFile;
 };
 
 // Destructor
@@ -90,7 +95,9 @@ void Parser::throwError(string s, Token &t) {
 		throw 42;
 	}
 	catch (...) {
+		outFile << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
 		cout << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
+		outFile.close();
 		system("pause");
 		exit(666);
 		return;
@@ -141,7 +148,9 @@ RootNode* Parser::parseFile() {
 			// ~~~~ PRINT START ~~~~
 			if (print)
 			{
+				outFile << endl << endl << "THE FILE HAS BEEN PARSED SUCCESSFULLY!" << endl;
 				cout << endl << endl << "THE FILE HAS BEEN PARSED SUCCESSFULLY!" << endl;
+				outFile.close();
 				system("pause");
 			}
 			// ~~~~ PRINT END ~~~~
@@ -187,7 +196,8 @@ FunctionDef* Parser::parseFunction() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << left << setw(22) << "<Function> => " << "function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>\n";
+		outFile << left << setw(22) << "<Function> => " << "function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>" << endl;
+		cout << left << setw(22) << "<Function> => " << "function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>" << endl;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -266,7 +276,8 @@ ParamDef* Parser::parseParameter() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<Parameter> =>" << "<IDs> : <Qualifier>\n";
+		outFile << setw(22) << "<Parameter> =>" << "<IDs> : <Qualifier>" << endl;;
+		cout << setw(22) << "<Parameter> =>" << "<IDs> : <Qualifier>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	auto IDs = parseIDs();
@@ -295,7 +306,8 @@ Token Parser::parseQualifier() {
 	if (print)
 	{
 		displayToken(token);
-		cout << left << setw(22) << "<Qualifier> =>" << token.value << endl;	
+		outFile << left << setw(22) << "<Qualifier> =>" << token.value << endl;
+		cout << left << setw(22) << "<Qualifier> =>" << token.value << endl;
 	}
 	// ~~~~ PRINT END ~~~~
 	return token;
@@ -305,7 +317,8 @@ Token Parser::parseQualifier() {
 NodeList* Parser::parseBody() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Body> =>" << "{ <Statement List> }\n";
+		outFile << setw(22) << "<Body> =>" << "{ <Statement List> }" << endl;;
+		cout << setw(22) << "<Body> =>" << "{ <Statement List> }" << endl;;
 	}
 	token = getToken();
 	if (token.value != "{")
@@ -360,11 +373,16 @@ Declaration* Parser::parseDeclaration() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<Declaration> =>" << "<Qualifier> <IDs> ;\n";
+		outFile << setw(22) << "<Declaration> =>" << "<Qualifier> <IDs> ;" << endl;;
+		cout << setw(22) << "<Declaration> =>" << "<Qualifier> <IDs> ;" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	auto qualifier = parseQualifier();
 	auto ids = parseIDs(); //since it's a declaration it ends on ';'
+	if (token.value != ";")
+	{
+		throwError("Error, expected ';'", token);
+	}
 	return new Declaration(qualifier, ids);
 }
 
@@ -379,7 +397,8 @@ NodeList* Parser::parseIDs() {
 		}
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<IDs> =>" << "<Identifier>\n";
+			outFile << setw(22) << "<IDs> =>" << "<Identifier>" << endl;;
+			cout << setw(22) << "<IDs> =>" << "<Identifier>" << endl;;
 			displayToken(token);
 		}
 		auto id = parseIdentifier();
@@ -394,7 +413,8 @@ NodeList* Parser::parseIDs() {
 		}
 		// ~~~~ PRINT START ~~~~
 		if (print && token.value == ",") {
-			cout << setw(22) << "<IDs> =>" << "<Identifier> , <IDs>\n";
+			outFile << setw(22) << "<IDs> =>" << "<Identifier> , <IDs>" << endl;;
+			cout << setw(22) << "<IDs> =>" << "<Identifier> , <IDs>" << endl;;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -440,7 +460,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		if (print)
 		{
 			displayToken(token);
-			cout << setw(22) << "<Statement> =>" << "<Compound>\n";
+			outFile << setw(22) << "<Statement> =>" << "<Compound>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<Compound>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -452,7 +473,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		if (print)
 		{
 			displayToken(token);
-			cout << setw(22) << "<Statement> =>" << "<Assign>\n";
+			outFile << setw(22) << "<Statement> =>" << "<Assign>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<Assign>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -464,7 +486,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		if (print)
 		{
 			displayToken(token);
-			cout << setw(22) << "<Statement> =>" << "<If>\n";
+			outFile << setw(22) << "<Statement> =>" << "<If>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<If>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -476,7 +499,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		if (print)
 		{
 			displayToken(token);
-			cout << setw(22) << "<Statement> =>" << "<Return>\n";
+			outFile << setw(22) << "<Statement> =>" << "<Return>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<Return>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -487,7 +511,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
-			cout << setw(22) << "<Statement> =>" << "<Write>\n";
+			outFile << setw(22) << "<Statement> =>" << "<Write>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<Write>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -498,7 +523,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
-			cout << setw(22) << "<Statement> =>" << "<Read>\n";
+			outFile << setw(22) << "<Statement> =>" << "<Read>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<Read>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -509,7 +535,8 @@ Node* Parser::parseStatement(bool doThrow) {
 		// ~~~~ PRINT START ~~~~
 		if (print)
 		{
-			cout << setw(22) << "<Statement> =>" << "<While>\n";
+			outFile << setw(22) << "<Statement> =>" << "<While>" << endl;;
+			cout << setw(22) << "<Statement> =>" << "<While>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -528,7 +555,8 @@ NodeList* Parser::parseCompound() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<Compound> =>" << "{ <Statement List> }\n";
+		outFile << setw(22) << "<Compound> =>" << "{ <Statement List> }" << endl;;
+		cout << setw(22) << "<Compound> =>" << "{ <Statement List> }" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -560,7 +588,8 @@ Assign* Parser::parseAssign() {
 	// ~~~~ PRINT START ~~~~
 	if (print)
 	{
-		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>\n";
+		outFile << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>" << endl;;
+		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -602,7 +631,8 @@ If* Parser::parseIf() {
 	}
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<If> =>" << "if (<Condition>) <Statement> <IfPrime>\n";
+		outFile << setw(22) << "<If> =>" << "if (<Condition>) <Statement> <IfPrime>" << endl;;
+		cout << setw(22) << "<If> =>" << "if (<Condition>) <Statement> <IfPrime>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -641,7 +671,8 @@ If* Parser::parseIfPrime(Condition *condition, Node *ifStatement) {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			displayToken(token);
-			cout << setw(22) << "<IfPrime> =>" << "endif\n";
+			outFile << setw(22) << "<IfPrime> =>" << "endif" << endl;;
+			cout << setw(22) << "<IfPrime> =>" << "endif" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		return new If(condition, ifStatement, nullptr);
@@ -650,7 +681,8 @@ If* Parser::parseIfPrime(Condition *condition, Node *ifStatement) {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<IfPrime> =>" << "else <Statement> endif\n";
+			outFile << setw(22) << "<IfPrime> =>" << "else <Statement> endif" << endl;;
+			cout << setw(22) << "<IfPrime> =>" << "else <Statement> endif" << endl;;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -690,7 +722,8 @@ Return* Parser::parseReturn() {
 	if (token.value == ";") {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Return> =>" << "return;\n";
+			outFile << setw(22) << "<Return> =>" << "return;" << endl;;
+			cout << setw(22) << "<Return> =>" << "return;" << endl;;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -700,6 +733,7 @@ Return* Parser::parseReturn() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
+			outFile << setw(22) << "<Return> =>" << "return <Expression>;" << endl;
 			cout << setw(22) << "<Return> =>" << "return <Expression>;" << endl;
 		}
 		// ~~~~ PRINT END ~~~~
@@ -725,7 +759,8 @@ Return* Parser::parseReturn() {
 Write* Parser::parseWrite() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Write> =>" << "printf ( <Expression> );\n";
+		outFile << setw(22) << "<Write> =>" << "printf ( <Expression> );" << endl;;
+		cout << setw(22) << "<Write> =>" << "printf ( <Expression> );" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -774,7 +809,8 @@ Write* Parser::parseWrite() {
 Read* Parser::parseRead() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );\n";
+		outFile << setw(22) << "<Read> =>" << "scanf ( <IDs> );" << endl;;
+		cout << setw(22) << "<Read> =>" << "scanf ( <IDs> );" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 
@@ -826,7 +862,8 @@ Read* Parser::parseRead() {
 While* Parser::parseWhile() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>\n";
+		outFile << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>" << endl;;
+		cout << setw(22) << "<While> =>" << "while ( <Condition> ) <Statement>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	token = getToken();
@@ -868,6 +905,7 @@ While* Parser::parseWhile() {
 Condition* Parser::parseCondition() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
+		outFile << setw(22) << "<Condition> =>" << "<Expression> <Relop> <Expression>" << endl;
 		cout << setw(22) << "<Condition> =>" << "<Expression> <Relop> <Expression>" << endl;
 	}
 	// ~~~~ PRINT END ~~~~
@@ -895,7 +933,8 @@ Condition* Parser::parseCondition() {
 Node* Parser::parseExpression() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Expression> =>" << "<Term> <ExpressionPrime>\n";
+		outFile << setw(22) << "<Expression> =>" << "<Term> <ExpressionPrime>" << endl;;
+		cout << setw(22) << "<Expression> =>" << "<Term> <ExpressionPrime>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	auto term = parseTerm();
@@ -911,7 +950,8 @@ Node* Parser::parseExpressionPrime(Node* lhs) {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<ExpressionPrime> =>  " + token.value + " <Term> <ExpressionPrime>\n";
+			outFile << setw(22) << "<ExpressionPrime> =>  " + token.value + " <Term> <ExpressionPrime>" << endl;;
+			cout << setw(22) << "<ExpressionPrime> =>  " + token.value + " <Term> <ExpressionPrime>" << endl;;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -921,7 +961,8 @@ Node* Parser::parseExpressionPrime(Node* lhs) {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<ExpressionPrime> =>" << "Empty\n";
+			outFile << setw(22) << "<ExpressionPrime> =>" << "Empty" << endl;;
+			cout << setw(22) << "<ExpressionPrime> =>" << "Empty" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -933,7 +974,8 @@ Node* Parser::parseExpressionPrime(Node* lhs) {
 Node* Parser::parseTerm() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
-		cout << setw(22) << "<Term> =>" << "<Factor> <TermPrime>\n";
+		outFile << setw(22) << "<Term> =>" << "<Factor> <TermPrime>" << endl;;
+		cout << setw(22) << "<Term> =>" << "<Factor> <TermPrime>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
 	return parseTermPrime(parseFactor());
@@ -948,7 +990,8 @@ Node* Parser::parseTermPrime(Node* lhs) {
 		// ~~~~ PRINT START ~~~~
 		if (print) {
 			displayToken(token);
-			cout << setw(22) << "<TermPrime> =>" << token.value + " <Factor> <TermPrime>\n";	
+			outFile << setw(22) << "<TermPrime> =>" << token.value + " <Factor> <TermPrime>" << endl;;
+			cout << setw(22) << "<TermPrime> =>" << token.value + " <Factor> <TermPrime>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		auto rhs = parseTermPrime(parseFactor());
@@ -967,7 +1010,8 @@ Node* Parser::parseFactor() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Factor> =>" << "- <Primary>\n";
+			outFile << setw(22) << "<Factor> =>" << "- <Primary>" << endl;;
+			cout << setw(22) << "<Factor> =>" << "- <Primary>" << endl;;
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
@@ -977,7 +1021,8 @@ Node* Parser::parseFactor() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Factor> =>" << "<Primary>\n";
+			outFile << setw(22) << "<Factor> =>" << "<Primary>" << endl;;
+			cout << setw(22) << "<Factor> =>" << "<Primary>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		holdToken();
@@ -1002,7 +1047,8 @@ Node* Parser::parsePrimary() {
 		{
 			// ~~~~ PRINT START ~~~~
 			if (print) {
-				cout << setw(22) << "<Primary> =>" << "<Identifier> ( <IDs> ))\n";
+				outFile << setw(22) << "<Primary> =>" << "<Identifier> ( <IDs> ))" << endl;;
+				cout << setw(22) << "<Primary> =>" << "<Identifier> ( <IDs> ))" << endl;;
 				displayToken(token);
 			}
 			// ~~~~ PRINT END ~~~~
@@ -1022,7 +1068,8 @@ Node* Parser::parsePrimary() {
 		{
 			// ~~~~ PRINT START ~~~~
 			if (print) {
-				cout << setw(22) << "<Primary> =>" << "<Identifier>\n";
+				outFile << setw(22) << "<Primary> =>" << "<Identifier>" << endl;;
+				cout << setw(22) << "<Primary> =>" << "<Identifier>" << endl;;
 			}
 			// ~~~~ PRINT END ~~~~
 			holdToken();
@@ -1033,7 +1080,8 @@ Node* Parser::parsePrimary() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Primary> => " << "<Integer>\n";
+			outFile << setw(22) << "<Primary> => " << "<Integer>" << endl;;
+			cout << setw(22) << "<Primary> => " << "<Integer>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		return new Integer(token);
@@ -1042,7 +1090,8 @@ Node* Parser::parsePrimary() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Primary> => " << "( <Expression> )\n";
+			outFile << setw(22) << "<Primary> => " << "( <Expression> )" << endl;;
+			cout << setw(22) << "<Primary> => " << "( <Expression> )" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		auto exp = parseExpression();
@@ -1061,7 +1110,8 @@ Node* Parser::parsePrimary() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
-			cout << setw(22) << "<Primary> => " << "<Real>\n";
+			outFile << setw(22) << "<Primary> => " << "<Real>" << endl;;
+			cout << setw(22) << "<Primary> => " << "<Real>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
 		return new Real(token);
@@ -1070,20 +1120,19 @@ Node* Parser::parsePrimary() {
 	{
 		// ~~~~ PRINT START ~~~~
 		if (print) {
+			outFile << setw(22) << "<Primary> => " << token.value;
 			cout << setw(22) << "<Primary> => " << token.value;
 		}
 		// ~~~~ PRINT END ~~~~
 		return new Bool(token);
 	}
-	else
-	{
-		return nullptr;
-	}
+	return nullptr;
 }
 
 void Parser::displayToken(Token t)
 {
 	string a, b;
 	t.print(a, b);
+	outFile << "TOKEN: " << left << setw(15) << a << "LEXEME: " << b << endl;
 	cout << "TOKEN: " << left << setw(15) << a << "LEXEME: " << b << endl;
 }

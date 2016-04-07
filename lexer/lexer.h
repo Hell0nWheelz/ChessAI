@@ -1,6 +1,6 @@
 /* Lexer by Micah Madru & Bryan Bonner
-*	CPSC 323 Assignment 1
-*	March 7th, 2016
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
 *
 */
 #ifndef _LEXER_H_

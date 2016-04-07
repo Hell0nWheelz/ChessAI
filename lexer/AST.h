@@ -1,3 +1,8 @@
+/* Lexer by Micah Madru & Bryan Bonner
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
+*
+*/
 #include <vector>
 #include <iostream>
 
