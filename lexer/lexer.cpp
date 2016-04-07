@@ -148,10 +148,18 @@ void Lexer::getSymbol() {
 void Lexer::numOrID(int state) {
 	s = c;
 	currState = state;
+	bool EOFbit = true;
+
+	if (file.peek() == EOF)
+	{
+		finished = true;
+		EOFbit = false;
+		prevState = currState;
+	}
 
 	file.get(c);
 
-	while (true) {
+	while (EOFbit) {
 		prevState = currState;
 		if (isalpha(c)) {
 			c = tolower(c); //Convert to lower case

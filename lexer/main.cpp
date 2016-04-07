@@ -16,7 +16,6 @@ void displayToken(Token t, ofstream &f);
 string generateSampleFile();
 
 int main() {
-	char pause;
 	string infile, outfile;
 	ofstream file;
 	bool print = true;
@@ -70,7 +69,7 @@ string generateSampleFile()
 
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
 		"function convert(fahr:integer)\n boolean yes, no; { \nreturn 5*(fahr - 32) /.9 + 5 -3 *2; \n}\n$$\ninteger low, high, step; [*declarations *]\n"
-		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n if (x > y)if(a=b){a := b;} endif else if(x < y) b := a; else { a := c; } endif    }\n$$\n";
+		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n if (x > y)if(a=b){a := b;} endif else if(x < y) b := a; else { a := c; } endif    }\n$$";
 
 	outFile.close();
 

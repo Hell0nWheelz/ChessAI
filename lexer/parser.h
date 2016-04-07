@@ -20,14 +20,15 @@ class Parser
 
 public:
 	Parser(string inFilename, string outFilename) : lex(inFilename) {
-		outFile.open(outFilename); 
-		holdToken();
-		token = getToken();
-		if (getToken().type == eof)
+		outFile.open(outFilename); //Passed through file
+		token = getToken(); //Get token
+		holdToken(); //Hold token
+		if (token.type == eof) //If the first token is EOF this means there was an empty file or wrong filename passed.
 		{
 			throwError("Error, empty file passed. Please check the filename and try again.", token);
 		}
 	}
+
 	~Parser();
 
 	//Start of Language Rule Functions
@@ -99,17 +100,12 @@ void Parser::holdToken() {
 
 //Error output
 void Parser::throwError(string s, Token &t) {
-	try {
-		throw 42;
-	}
-	catch (...) {
-		outFile << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
-		cout << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
-		outFile.close();
-		system("pause");
-		exit(666);
-		return;
-	}
+	outFile << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
+	cout << endl << "Found '" + token.value + "' on Line " + to_string(t.lineNum) + ": " + s << endl << endl;
+	outFile.close();
+	system("pause");
+	exit(666);
+	return;
 }
 
 // Rule 1  <Rat16S> => <Opt Function Definitions> $$ <Opt Declaration List> $$ <Statement List> $$
@@ -119,7 +115,7 @@ RootNode* Parser::parseFile() {
 	token = getToken();
 	if (token.value != "$$")
 	{
-		throwError("Error, expected '&&'.", token);
+		throwError("Error, expected '$$'.", token);
 	}
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -132,7 +128,7 @@ RootNode* Parser::parseFile() {
 	token = getToken();
 	if (token.value != "$$")
 	{
-		throwError("Error, expected '&&'.", token);
+		throwError("Error, expected '$$'.", token);
 	}
 	// ~~~~ PRINT START ~~~~
 	if (print) {
@@ -195,6 +191,10 @@ NodeList* Parser::parseFunctionDefs() {
 				//adds function to nodelist if there is one
 				defs->add(def);
 			}
+		}
+		else
+		{
+			throwError("Error, expected '$$' or 'function'", token);
 		}
 	}
 }
