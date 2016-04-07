@@ -19,7 +19,15 @@ class Parser
 	Lexer lex;
 
 public:
-	Parser(string inFilename, string outFilename) : lex(inFilename) { outFile.open(outFilename); }
+	Parser(string inFilename, string outFilename) : lex(inFilename) {
+		outFile.open(outFilename); 
+		holdToken();
+		token = getToken();
+		if (getToken().type == eof)
+		{
+			throwError("Error, empty file passed. Please check the filename and try again.", token);
+		}
+	}
 	~Parser();
 
 	//Start of Language Rule Functions
