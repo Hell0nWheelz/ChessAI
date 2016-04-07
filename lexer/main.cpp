@@ -21,51 +21,16 @@ int main() {
 	ofstream file;
 	bool print = false;
 
-	cout << "Enter in the name of your test file or enter in [Gen] to generate a sample file: ";
-	//cin >> infile;
-	infile = "Gen";
+	cout << "Output will be parsed to parser.txt\nEnterin [Gen] to generate a sample file: ";
+	cin >> infile;
 
 	if (infile == "Gen") {
 		infile = generateSampleFile();
-		if (infile == "generated_sample.txt") {
-			outfile = "lexer.txt";
-		}
 	}
-	else {
-		cout << "Enter in the name of your output file: ";
-		cin >> outfile;
-	}
-
-	Lexer lexer(infile);
-	Token token;
-
-	file.open(outfile);
-	if (file.is_open() && print)
-	{
-		file << left << setw(18) << "Token" << setw(18) << "Lexeme" << "\n" << endl;
-		cout << left << setw(18) << "Token" << setw(18) << "Lexeme" << setw(18) << "Line Number\n" << endl;
-		while (!lexer.done()) {
-			token = lexer.next();
-			if (token.type != eof) {
-				displayToken(token, file);
-			}
-		}
-
-		file.close();
-
-		cout << "Lexer complete! Press a key to continue... " << endl;
-		//cin.ignore();
-		//pause = cin.get();
-	}
-	else {
-		//cout << "Unable to open " << outfile << endl;
-		//cout << "Press a key to continue... ";
-		cin.ignore();
-		pause = cin.get();
-	}
-
 	Parser parse(infile);
 	auto root = parse.parseFile();
+
+	file.close();
 
 	return 0;
 }
