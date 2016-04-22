@@ -4,21 +4,22 @@
 #include <tuple>
 #include <fstream>
 #include <iomanip>
+#include <string>
+
+bool print = true;
 
 using namespace std;
 
-enum OPType
-{
-	//Assembly Instructions
-	PUSHI, PUSHM, POPM, 
+//Assembly Instructions
+/*	PUSHI, PUSHM, POPM, 
 	STDOUT, STDIN, 
 	ADD, SUB, MUL, DIV, 
 	GRT, LES, EQU, GEQ, LEQ, NEQ,
 	JUMPZ, JUMP, LABEL
-};
+*/
 
-class STable
-{
+//SYMBOL TABLE CLASS
+class STable {
 public:
 	STable() {}
 	~STable() {}
@@ -61,20 +62,22 @@ public:
 		ofstream outFile; 
 		outFile.open(s);
 
-		outFile << setw(2) << " #" << setw(20) << right << "IDENTIFIER" << setw(20) << right << "MEMORY LOCATION" << setw(20) << right << "TYPE" << endl << endl;
-		cout << setw(2) << " #" << setw(20) << right << "IDENTIFIER" << setw(20) << right << "MEMORY LOCATION" << setw(10) << right << "TYPE" << endl << endl;
+		outFile << setw(2) << " #" << setw(20) << right << "IDENTIFIER" << setw(20) << right << "MEMORY LOCATION" << setw(12) << right << "TYPE" << endl << endl;
+		if (print) {
+			cout << setw(2) << " #" << setw(20) << right << "IDENTIFIER" << setw(20) << right << "MEMORY LOCATION" << setw(12) << right << "TYPE" << endl << endl;
+		}
 		for (int i = 0; i < table.size(); i++)
 		{
 			outFile << setw(2) << i+1 << setw(20) << right << 
 				get<0>(a[i]) << setw(20) << right << 
-				get<1>(a[i]) << setw(10) << right << get<2>(a[i]) << endl;
-
-
-			cout << setw(2) << i + 1 << setw(20) << right <<
-				get<0>(a[i]) << setw(20) << right <<
-				get<1>(a[i]) << setw(10) << right << get<2>(a[i]) << endl;
+				get<1>(a[i]) << setw(12) << right << get<2>(a[i]) << endl;
+			if (print)
+			{
+				cout << setw(2) << i + 1 << setw(20) << right <<
+					get<0>(a[i]) << setw(20) << right <<
+					get<1>(a[i]) << setw(12) << right << get<2>(a[i]) << endl;
+			}
 		}
-
 		outFile.close();
 	}
 
@@ -83,25 +86,44 @@ private:
 	int SymbolNum = 5000; //Starting memory address is 5000
 };
 
-class ITable
-{
+//INSTRUCTION TABLE CLASS
+class ITable {
 public:
 	ITable() {}
 	~ITable() {}
 
-	int insertInstruction(OPType op, int operand) {
+	int insertInstruction(string op, int operand) {
 		table.push_back({ op, operand });
 		return int(table.size() - 1); // return instruction index
 	}
 
-	void printTable(fstream outFile) {}
+	//Print the instruction table
+	void printItable(string s) {
+		ofstream outFile;
+		outFile.open(s);
+		
+		outFile << setw(40) << right << "ASSEMBLY CODE LISTING" << endl;
+		if (print)
+		{
+			cout << setw(40) << right << "ASSEMBLY CODE LISTING" << endl;
+		}
+		for (int i = 0; i < table.size(); i++)
+		{
+			outFile << setw(2) << right << i << setw(10) << left << table[i].first << setw(10) << left << table[i].second << endl;
+			if (print)
+			{
+				cout << setw(2) << right << i << setw(10) << left << table[i].first << setw(10) << left << table[i].second << endl;
+			}
+		}
+		outFile.close();
+	}
 
 	void updateInstruction(int index, int operand) {
-		table.at(index).second = operand;
+		table[index].second = operand;
 	}
 
 private:
-	vector<pair<OPType, int>> table;
+	vector<pair<string, int>> table;
 };
 
 
@@ -111,7 +133,7 @@ public:
 	Context() {}
 	~Context() {}
 
-	int insertInstruction(OPType op, int operand) {
+	int insertInstruction(string op, int operand) {
 		return itable.insertInstruction(op, operand);
 	}
 
@@ -120,15 +142,36 @@ public:
 	}
 
 	void insertError(string s, int lineNum) {
-		errorTable.push_back({ s, lineNum });
+		string error = "Error on Line " + to_string(lineNum) + ": '" + s + "' is already declared.";
+		errorTable.push_back(error);
 	}
 
 	void printSTable(string s) {
 		stable.printSTable(s);
 	}
 
+	void printITable(string s) {
+		itable.printItable(s);
+	}
+
+	pair<int, string>* getVariable(Token t) {
+		return stable.getVariable(t);
+	}
+
+	int printError() {
+		if (print && errorTable.size() > 0)
+		{
+			cout << setw(40) << right << "ERROR TABLE" << endl;
+		}
+		for (auto i : errorTable)
+		{
+			cout << i << endl;
+		}
+		return errorTable.size();
+	}
+
 private:
 	ITable itable; 
 	STable stable; 
-	vector<pair<string, int>> errorTable;
+	vector<string> errorTable;
 };

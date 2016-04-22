@@ -60,9 +60,8 @@ public:
 
 		for (auto i : *statements) //iterate through all statements
 		{
-			statements->codeGen(context);
+			i->codeGen(context);
 		}
-		
 	}
 private:
 	NodeList *defs; // would be null if not there
@@ -134,7 +133,12 @@ public:
 	void codeGen(Context &context) {
 		for (auto i:*ids)
 		{
-			context.insertVariable(static_cast<Identifier*>(i)->getToken(), qualifier.value);
+			auto token = static_cast<Identifier*>(i)->getToken();
+			auto a = context.insertVariable(token, qualifier.value);
+			if (a == false)
+			{
+				context.insertError(token.value, token.lineNum);
+			}
 		}
 	}
 
@@ -147,7 +151,11 @@ class Assign : public Node {
 public:
 	Assign(Token id, Node* express) : assignID(id), expression(express) { }
 	
-	void codeGen(Context &context) { }
+	void codeGen(Context &context) { 
+		expression->codeGen(context);
+		auto address = context.getVariable(assignID); //GET MEMORY ADDRESS
+		context.insertInstruction("POPM", address->first); //OP + MEMORY ADDRESS
+	}
 
 private:
 	Token assignID;
@@ -194,11 +202,14 @@ private:
 	Node* expression;
 };
 
+//SCANF
 class Read : public Node {
 public:
 	Read(NodeList* identifiers) : ids(identifiers) {}
 
-	void codeGen(Context &context) { }
+	void codeGen(Context &context) { 
+		
+	}
 private:
 	NodeList* ids;
 };
@@ -277,7 +288,7 @@ public:
 	Bool(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
-		context.insertInstruction(PUSHI, t.value == "true" ? 1 : 0);
+		context.insertInstruction("PUSHI", t.value == "true" ? 1 : 0);
 		return "boolean";
 	}
 

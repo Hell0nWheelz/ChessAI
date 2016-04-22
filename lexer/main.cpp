@@ -62,7 +62,9 @@ int main() {
 	Context context;
 	root->codeGen(context);
 
-	context.printSTable("SymbolTable_" + outfile);
+	context.printSTable("STable_" + outfile);
+	context.printITable("ITable_" + outfile);
+	context.printError();
 
 	return 0;
 }
@@ -74,7 +76,7 @@ string generateSampleFile()
 
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
 		"function convert(fahr:integer)\n boolean yes, no; real a, b, c, d; { \nreturn 5*(fahr - 32) /.9 + 5 -3 *2; \n}\n"
-		"$$\ninteger low, high, step; integer b, c, d; [*declarations *]\n"
+		"$$\ninteger low, high, step; real x; \nboolean x; [*declarations *]\n"
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(convert(low));\nlow := low + step; \n if (x > y)if(a=b){a := b;} endif else if(x < y) b := a; else { a := c; } endif    }\n$$";
 
 	outFile.close();
