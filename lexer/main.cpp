@@ -59,6 +59,9 @@ int main() {
 	Parser parse(infile, "parser_" + outfile);
 	auto root = parse.parseFile();
 
+	Context context;
+	root->codeGen(context);
+
 	return 0;
 }
 
