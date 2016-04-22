@@ -41,6 +41,9 @@ public:
 		return children.end();
 	}
 
+	int size() {
+		return children.size();
+	}
 private:
 	vector<Node*> children;
 };
@@ -50,8 +53,16 @@ public:
 	
 	RootNode(NodeList* f, NodeList* d, NodeList* s) : defs(f), decls(d), statements(s) { }
 	void codeGen(Context &context) {
-		decls->codeGen(context);
-		statements->codeGen(context);
+		for (auto i : *decls) //iterate through all declerations
+		{
+			i->codeGen(context);
+		}
+
+		for (auto i : *statements) //iterate through all statements
+		{
+			statements->codeGen(context);
+		}
+		
 	}
 private:
 	NodeList *defs; // would be null if not there
@@ -65,6 +76,10 @@ public:
 	FunctionDef(Token id, NodeList* params, NodeList* declarations, NodeList* body)
 		//Default Constructor Syntax
 		: funcID(id), params(params), decls(declarations), body(body) { }
+
+	void codeGen(Context &context) {
+		//Skip Over
+	}
 private:
 	Token funcID;
 	NodeList *params;
@@ -77,25 +92,52 @@ public:
 	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
 
 	void codeGen(Context &context) {
-
+		//Skip over
 	}
 private:
 	Token qualifier;
 	NodeList* ids;
 };
 
+class Expression : public Node
+{
+public:
+	Expression() {}
+	~Expression() {}
+
+	void codeGen(Context &context) {
+		valueGen(context);
+	}
+
+	virtual string valueGen(Context &context) = 0;
+private:
+
+};
+
+class Identifier : public Expression {
+public:
+	Identifier(Token t) : t(t) {}
+
+	string valueGen(Context &context) {
+		return t.value;
+	}
+	Token getToken() {
+		return t;
+	}
+private:
+	Token t;
+};
+
 class Declaration : public Node {
 public:
 	Declaration(Token qual, NodeList* ids) : qualifier(qual), ids(ids) { }
 	void codeGen(Context &context) {
-
 		for (auto i:*ids)
 		{
-			context.insertVariable(static_cast<Identifier*>(i).getToken().value, qualifier.value);
+			context.insertVariable(static_cast<Identifier*>(i)->getToken(), qualifier.value);
 		}
-		
-
 	}
+
 private:
 	Token qualifier;
 	NodeList* ids;
@@ -173,27 +215,14 @@ private:
 	Node* body;
 };
 
-class Expression
-{
-public:
-	Expression() {}
-	~Expression() {}
 
-	void codeGen(Context &context) { 
-		valueGen(context);
-	}
 
-	virtual VariableType valueGen(Context &context) = 0;
-private:
-
-};
-
-class BinaryExpression : public Node {
+class BinaryExpression : public Expression {
 public:
 	BinaryExpression(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
 
-	VariableType valueGen(Context &context) {
-
+	string valueGen(Context &context) {
+		return "Test";
 	}
 private:
 	Token oper;
@@ -201,83 +230,70 @@ private:
 	Node* right;
 };
 
-class UrinaryExpression : public Node {
+class UrinaryExpression : public Expression {
 public:
 	UrinaryExpression(Token t, Node* cent) : oper(t), center(cent) {}
 
-	VariableType valueGen(Context &context) {
-
+	string valueGen(Context &context) {
+		return "Test";
 	}
 private:
 	Token oper;
 	Node* center;
 };
 
-class Identifier : public Node {
+class Integer : public Expression {
 public:
-	Identifier(Token t) : value(t) {}
-
-	VariableType valueGen(Context &context) {
-
-	}
-	Token getToken() {
-		return value;
-	}
-private:
-	Token value;
-};
-
-class Integer : public Node {
-public:
-	Integer(Token t) : value(t) {}
-	VariableType valueGen(Context &context) {
-
+	Integer(Token t) : t(t) {}
+	string valueGen(Context &context) {
+		return "Test";
 	}
 
 	Token getToken() {
-		return value;
+		return t;
 	}
 private:
-	Token value;
+	Token t;
 };
 
-class Real : public Node {
+class Real : public Expression {
 public:
-	Real(Token t) : value(t) {}
+	Real(Token t) : t(t) {}
 
-	VariableType valueGen(Context &context) {
+	string valueGen(Context &context) {
 		//Empty Function
-		return ERROR;
+		return "ERROR";
 	}
 
 	Token getToken() {
-		return value;
+		return t;
 	}
 private:
-	Token value;
+	Token t;
 };
 
-class Bool : public Node {
+class Bool : public Expression {
 public:
-	Bool(Token t) : value(t) {}
+	Bool(Token t) : t(t) {}
 
-	VariableType valueGen(Context &context) {
-		context.insertInstruction(PUSHI, value.value == "true" ? 1 : 0);
+	string valueGen(Context &context) {
+		context.insertInstruction(PUSHI, t.value == "true" ? 1 : 0);
+		return "boolean";
 	}
 
 	Token getToken() {
-		return value;
+		return t;
 	}
 private:
-	Token value;
+	Token t;
 };
 
-class FunctionCall : public Node {
+class FunctionCall : public Expression {
 public:
 	FunctionCall(Token t, NodeList* args) : id(t), arguments(args) {}
 
-	VariableType valueGen(Context &context) {
-		return ERROR;
+	string valueGen(Context &context) {
+		return "ERROR";
 	}
 
 	Token getToken() {

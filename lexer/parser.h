@@ -64,7 +64,7 @@ private:
 	Node* parsePrimary();						// R28
 	//End of Language Rule Functions
 
-	bool print = true; //used for toggling printing on and off
+	bool print = false; //used for toggling printing on and off
 	void displayToken(Token t);
 	void throwError(string s, Token &t);
 	Token token;
