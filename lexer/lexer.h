@@ -64,7 +64,7 @@ struct Token {
 class Lexer {
 public:
 	//Constructor opens inputed filename and outputted filename
-	Lexer(string input);
+	explicit Lexer(string input);
 
 	//Deconstructor closes inputed file
 	~Lexer();

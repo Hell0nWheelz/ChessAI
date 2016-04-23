@@ -141,7 +141,7 @@ private:
 
 class Identifier : public Expression {
 public:
-	Identifier(Token t) : t(t) {}
+	explicit Identifier(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
 		auto id = context.getVariable(t);
@@ -304,7 +304,7 @@ private:
 
 class Write : public Expression {
 public:
-	Write(Expression* express) : expression(express) {}
+	explicit Write(Expression* express) : expression(express) {}
 
 	string valueGen(Context &context) {
 		auto a = expression->valueGen(context);
@@ -321,7 +321,7 @@ private:
 
 class Read : public Node {
 public:
-	Read(NodeList* identifiers) : ids(identifiers) {}
+	explicit Read(NodeList* identifiers) : ids(identifiers) {}
 
 	void codeGen(Context &context) { 
 		for (auto i: *ids)
@@ -422,7 +422,7 @@ private:
 
 class Integer : public Expression {
 public:
-	Integer(Token t) : t(t) {}
+	explicit Integer(Token t) : t(t) {}
 	string valueGen(Context &context) {
 		context.insertInstruction("PUSHI", stoi(t.value));
 		return "integer";
@@ -437,7 +437,7 @@ private:
 
 class Real : public Expression {
 public:
-	Real(Token t) : t(t) {}
+	explicit Real(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
 		//Empty Function
@@ -454,7 +454,7 @@ private:
 
 class Bool : public Expression {
 public:
-	Bool(Token t) : t(t) {}
+	explicit Bool(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
 		context.insertInstruction("PUSHI", t.value == "true" ? 1 : 0);
