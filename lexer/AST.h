@@ -63,6 +63,14 @@ public:
 			i->codeGen(context);
 		}
 	}
+
+	~RootNode()
+	{
+		delete defs;
+		delete decls;
+		delete statements;
+	}
+
 private:
 	NodeList *defs; // would be null if not there
 	NodeList *decls;
@@ -79,6 +87,14 @@ public:
 	void codeGen(Context &context) {
 		//Skip Over
 	}
+
+	~FunctionDef()
+	{
+		delete params;
+		delete decls;
+		delete body;
+	}
+
 private:
 	Token funcID;
 	NodeList *params;
@@ -93,6 +109,12 @@ public:
 	void codeGen(Context &context) {
 		//Skip over
 	}
+
+	~ParamDef()
+	{
+		delete ids;
+	}
+
 private:
 	Token qualifier;
 	NodeList* ids;
@@ -269,6 +291,12 @@ public:
 		context.insertError(t, "return");
 		return "ERROR";
 	}
+
+	~Return()
+	{
+		delete expression;
+	}
+
 private:
 	Token t;
 	Expression* expression;
@@ -453,6 +481,12 @@ public:
 	Token getToken() {
 		return id;
 	}
+
+	~FunctionCall()
+	{
+		delete arguments;
+	}
+
 private:
 	Token id;
 	NodeList* arguments;
