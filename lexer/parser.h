@@ -1113,6 +1113,7 @@ Expression* Parser::parsePrimary() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
+		return exp;
 	}
 	else if (token.type == REAL)
 	{
