@@ -105,7 +105,6 @@ void Parser::throwError(string s, Token &t) {
 	outFile.close();
 	system("pause");
 	exit(666);
-	return;
 }
 
 // Rule 1  <Rat16S> => <Opt Function Definitions> $$ <Opt Declaration List> $$ <Statement List> $$
