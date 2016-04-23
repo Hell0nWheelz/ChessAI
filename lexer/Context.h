@@ -45,7 +45,7 @@ public:
 		auto it = table.find(t.value);
 		if (it != table.end())
 		{
-			return &it->second;
+			return &it->second; //Returns 
 		}
 		return nullptr;
 	}
@@ -102,17 +102,27 @@ public:
 		ofstream outFile;
 		outFile.open(s);
 		
-		outFile << setw(40) << right << "ASSEMBLY CODE LISTING" << endl;
-		if (print)
-		{
-			cout << setw(40) << right << "ASSEMBLY CODE LISTING" << endl;
+		outFile << setw(2) << " #" << setw(20) << right << "OP" << setw(20) << right << "OPERAND" << endl << endl;
+		if (print) {
+			cout << endl << endl << setw(2) << " #" << setw(20) << right << "OP" << setw(20) << right << "OPERAND" << endl << endl;
 		}
 		for (int i = 0; i < table.size(); i++)
 		{
-			outFile << setw(2) << right << i << setw(10) << left << table[i].first << setw(10) << left << table[i].second << endl;
-			if (print)
+			if (table[i].second == -999) // Don't print OPERAND 
 			{
-				cout << setw(2) << right << i << setw(10) << left << table[i].first << setw(10) << left << table[i].second << endl;
+				outFile << setw(2) << right << i + 1 << setw(20) << right << table[i].first << setw(20) << right << endl;
+				if (print)
+				{
+					cout << setw(2) << right << i + 1 << setw(20) << right << table[i].first << setw(20) << right << endl;
+				}
+			}
+			else // PRINT OPERAND
+			{
+				outFile << setw(2) << right << i + 1 << setw(20) << right << table[i].first << setw(20) << right << table[i].second << endl;
+				if (print)
+				{
+					cout << setw(2) << right << i + 1 << setw(20) << right << table[i].first << setw(20) << right << table[i].second << endl;
+				}
 			}
 		}
 		outFile.close();
@@ -141,8 +151,17 @@ public:
 		return stable.insertVariable(t, varType);
 	}
 
-	void insertError(string s, int lineNum) {
-		string error = "Error on Line " + to_string(lineNum) + ": '" + s + "' is already declared.";
+	void insertError(Token t, string e) {
+		string error;
+		if (e == "!declared")
+		{
+			 error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' has not been declared.";
+		}
+		if (e == "declared")
+		{
+			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' has already been declared.";
+		}
+			
 		errorTable.push_back(error);
 	}
 

@@ -108,6 +108,10 @@ public:
 		valueGen(context);
 	}
 
+	Token getToken() {
+		return getToken();
+	}
+
 	virtual string valueGen(Context &context) = 0;
 private:
 
@@ -118,7 +122,17 @@ public:
 	Identifier(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
-		return t.value;
+		auto id = context.getVariable(t);
+		if (!id)
+		{
+			context.insertError(t, "!declared"); 
+		}
+		else
+		{
+			context.insertInstruction("PUSHM", id->first);
+			return id->second; //RETURNS THE TYPE
+		}
+		return "ERROR";
 	}
 	Token getToken() {
 		return t;
@@ -135,9 +149,9 @@ public:
 		{
 			auto token = static_cast<Identifier*>(i)->getToken();
 			auto a = context.insertVariable(token, qualifier.value);
-			if (a == false)
+			if (a == false) //Already in Symbol Table;
 			{
-				context.insertError(token.value, token.lineNum);
+				context.insertError(token, "declared");
 			}
 		}
 	}
@@ -197,23 +211,31 @@ class Write : public Node {
 public:
 	Write(Node* express) : expression(express) {}
 
-	void codeGen(Context &context) { }
+	void codeGen(Context &context) {
+		expression->codeGen(context);
+		context.insertInstruction("STDOUT", -999);
+	}
 private:
 	Node* expression;
 };
 
-//SCANF
 class Read : public Node {
 public:
 	Read(NodeList* identifiers) : ids(identifiers) {}
 
 	void codeGen(Context &context) { 
-		
+		for (auto i: *ids)
+		{
+			context.insertInstruction("STDIN", -999);
+			i->codeGen(context);
+		}
+
 	}
 private:
 	NodeList* ids;
 };
 
+//
 class While : public Node {
 public:
 	While(Condition* cond, Node* body) : condition(cond), body(body) {}
@@ -226,13 +248,34 @@ private:
 	Node* body;
 };
 
-
-
+//
 class BinaryExpression : public Expression {
 public:
 	BinaryExpression(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
 
 	string valueGen(Context &context) {
+		left->codeGen(context);
+		right->codeGen(context);
+
+		string opcode;
+		if (oper.value == "+")
+		{
+			opcode = "ADD";
+		}
+		else if (oper.value == "-")
+		{
+			opcode = "SUB";
+		}
+		else if (oper.value == "/")
+		{
+			opcode = "DIV";
+		}
+		else if (oper.value == "*")
+		{
+			opcode = "MUL";
+		}
+		context.insertInstruction(opcode, -999);
+
 		return "Test";
 	}
 private:
@@ -257,7 +300,8 @@ class Integer : public Expression {
 public:
 	Integer(Token t) : t(t) {}
 	string valueGen(Context &context) {
-		return "Test";
+		context.insertInstruction("PUSHI", stoi(t.value));
+		return "integer";
 	}
 
 	Token getToken() {
@@ -273,7 +317,7 @@ public:
 
 	string valueGen(Context &context) {
 		//Empty Function
-		return "ERROR";
+		return "SKIP";
 	}
 
 	Token getToken() {
@@ -304,7 +348,8 @@ public:
 	FunctionCall(Token t, NodeList* args) : id(t), arguments(args) {}
 
 	string valueGen(Context &context) {
-		return "ERROR";
+		return "SKIP";
+		//skip over
 	}
 
 	Token getToken() {

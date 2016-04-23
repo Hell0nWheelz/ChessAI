@@ -600,7 +600,7 @@ Assign* Parser::parseAssign() {
 		cout << setw(22) << "<Assign> =>" << "<Identifier> := <Expression>" << endl;;
 	}
 	// ~~~~ PRINT END ~~~~
-	token = getToken();
+	auto id = getToken();
 	if (token.type != IDENTIFIER)
 	{
 		throwError("Error, expected IDENTIFIER.", token);
@@ -627,7 +627,7 @@ Assign* Parser::parseAssign() {
 		displayToken(token);
 	}
 	// ~~~~ PRINT END ~~~~
-	return new Assign(token, express);
+	return new Assign(id, express);
 }
 
 // Rule 18 <If> => if (<Condition>) <Statement> <IfPrime>
@@ -810,7 +810,7 @@ Write* Parser::parseWrite() {
 		displayToken(token);
 	}
 	// ~~~~ PRINT END ~~~~
-	return new Write(exp);//RETURN NULL
+	return new Write(exp);
 }
 
 // R21 <Read> => scanf ( <IDs> );

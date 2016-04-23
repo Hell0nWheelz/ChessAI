@@ -1,1 +1,12 @@
-                   ASSEMBLY CODE LISTING
+ #                  OP             OPERAND
+
+ 1               PUSHI                   0
+ 2                POPM                5002
+ 3               PUSHI                   1
+ 4                POPM                5000
+ 5               STDIN
+ 6               PUSHM                5001
+ 7               PUSHM                5002
+ 8               PUSHM                5001
+ 9                 ADD
+10              STDOUT
