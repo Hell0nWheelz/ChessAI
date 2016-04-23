@@ -161,14 +161,24 @@ private:
 	NodeList* ids;
 };
 
-class Assign : public Node {
+class Assign : public Expression {
 public:
 	Assign(Token id, Expression* express) : assignID(id), expression(express) { }
 	
-	void codeGen(Context &context) { 
-		expression->codeGen(context);
+	string valueGen(Context &context) { 
+		auto a = expression->valueGen(context);
 		auto address = context.getVariable(assignID); //GET MEMORY ADDRESS
+		if (!address)
+		{
+			context.insertError(assignID, "!declared");
+			return "ERROR";
+		}
 		context.insertInstruction("POPM", address->first); //OP + MEMORY ADDRESS
+		if (a == address->second)
+		{
+			return a;
+		}
+		return "ERROR";
 	}
 
 private:

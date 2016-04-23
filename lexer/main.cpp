@@ -62,7 +62,7 @@ int main() {
 	Context context;
 	root->codeGen(context);
 
-	if (!context.printError())
+	if (!context.printError("ETable_" + outfile))
 	{
 		context.printSTable("STable_" + outfile);
 		context.printITable("ITable_" + outfile);
@@ -76,14 +76,14 @@ string generateSampleFile()
 	ofstream outFile;
 	outFile.open("generated_sample.txt");
 
-	/*outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
-		"[*function convert(fahr:integer)\n boolean yes, no; real a, b, c, d; { \nreturn 5*(fahr - 32) /.9 + 5 -3 *2; \n}\n*]"
-		"$$\ninteger low, high, step; real x; \nboolean x; [*declarations *]\n"
-		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(low);\nlow := low + step; \n if (x > y) if(a = b){a := b;} endif else if(x < y) b := a; else { a := c; } endif  x := y;  }\n$$";*/
-	
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
+		"function convert(fahr:integer)\n boolean yes, no; real a, b, c, d; { \nreturn 5*(fahr - 32) /.9 + 5 -3 *2; \n}\n "
+		"$$\ninteger low, high, step, y, a, b, c, x; \nboolean z; [*declarations *]\n"
+		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(low);\nlow := low + step; \n if (x > y) if(a = b){a := b;} endif else if(x < y) b := a; else { a := c; } endif  x := y;  }\n$$";
+	
+	/*outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
 		"$$\ninteger i, max, sum; \nboolean x; [*declarations *]\n"
-		"\n$$ if(i > max) i := sum; else i:= sum; endif sum := 1*0; i := 1; scanf(max); while(i<max){ sum := sum + i; i := i+1; } printf(sum+max);\n$$";
+		"\n$$ if(i > max) i := sum; else i:= sum; endif sum := 1*0; i := 1; scanf(max); while(i<max){ sum := sum + i; i := i+1; } printf(sum+max);\n$$";*/
 
 	outFile.close();
 

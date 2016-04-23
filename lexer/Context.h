@@ -189,14 +189,24 @@ public:
 		return stable.getVariable(t);
 	}
 
-	int printError() {
-		if (print && errorTable.size() > 0)
+	int printError(string s) {
+		ofstream outFile;
+		outFile.open(s);
+
+		if (errorTable.size() > 0)
 		{
-			cout << setw(40) << right << "ERROR TABLE" << endl;
-		}
-		for (auto i : errorTable)
-		{
-			cout << i << endl;
+			outFile << setw(25) << right << "ERROR TABLE" << endl;
+			if (print)
+			{
+				cout << setw(25) << right << "ERROR TABLE" << endl;
+			}
+			for (auto i : errorTable) {
+				outFile << i << endl;
+				if (print)
+				{
+					cout << i << endl;
+				}
+			}			
 		}
 		return errorTable.size();
 	}
