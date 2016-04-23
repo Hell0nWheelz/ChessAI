@@ -80,7 +80,6 @@ private:
 	fstream file;
 	int currState;
 	int prevState;
-	int line;
 	const static int DFSM[][5];
 	bool finished;
 	string s;
