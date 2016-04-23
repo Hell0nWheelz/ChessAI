@@ -15,6 +15,7 @@
 using namespace std;
 
 Lexer::Lexer(string input)
+: c{}, currState{}, prevState{}
 {
 	file.open(input);
 	finished = false;
