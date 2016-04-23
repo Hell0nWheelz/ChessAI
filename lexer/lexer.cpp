@@ -191,7 +191,7 @@ void Lexer::numOrID(int state) {
 		token.type = IDENTIFIER;
 		token.value = s;
 
-		for (int i = 0; i < sizeof(keywords) / sizeof(string); i++) {
+		for (size_t i = 0; i < sizeof(keywords) / sizeof(string); i++) {
 			if (s == keywords[i]) {
 				token.type = KEYWORD;
 				token.value = s;

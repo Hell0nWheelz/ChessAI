@@ -66,7 +66,7 @@ public:
 		if (print) {
 			cout << setw(2) << " #" << setw(20) << right << "IDENTIFIER" << setw(20) << right << "MEMORY LOCATION" << setw(12) << right << "TYPE" << endl << endl;
 		}
-		for (int i = 0; i < table.size(); i++)
+		for (size_t i = 0; i < table.size(); i++)
 		{
 			outFile << setw(2) << i+1 << setw(20) << right << 
 				get<0>(a[i]) << setw(20) << right << 
@@ -106,7 +106,7 @@ public:
 		if (print) {
 			cout << endl << endl << setw(2) << " #" << setw(20) << right << "OP" << setw(20) << right << "OPERAND" << endl << endl;
 		}
-		for (int i = 0; i < table.size(); i++)
+		for (size_t i = 0; i < table.size(); i++)
 		{
 			if (table[i].second == -999) // Don't print OPERAND 
 			{
