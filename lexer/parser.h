@@ -919,7 +919,7 @@ Condition* Parser::parseCondition() {
 	// ~~~~ PRINT END ~~~~
 
 	auto exp1 = parseExpression();
-	token = getToken();
+	auto oper = getToken();
 	if (token.value != "=" && token.value != "/=" && token.value != ">" && token.value != "<" && token.value != "=>" && token.value != "<=")
 	{
 		throwError("Error, expected RELATIONAL OPERATOR.", token);
@@ -932,7 +932,7 @@ Condition* Parser::parseCondition() {
 
 	auto exp2 = parseExpression();
 
-	return new Condition(token, exp1, exp2);
+	return new Condition(oper, exp1, exp2);
 }
 
 // R24 Removed and handled in R23 parseCondition();

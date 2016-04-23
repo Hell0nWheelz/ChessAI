@@ -180,7 +180,34 @@ class Condition : public Node {
 public:
 	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
 
-	void codeGen(Context &context) { }
+	void codeGen(Context &context) { 
+		left->codeGen(context);
+		right->codeGen(context);
+		if (oper.value == "<")
+		{
+			context.insertInstruction("LES", -999);
+		}
+		else if (oper.value == ">")
+		{
+			context.insertInstruction("GRT", -999);
+		}
+		else if (oper.value == "=")
+		{
+			context.insertInstruction("EQU", -999);
+		}
+		else if (oper.value == "/=")
+		{
+			context.insertInstruction("NEQ", -999);
+		}
+		else if (oper.value == "<=")
+		{
+			context.insertInstruction("LEQ", -999);
+		}
+		else if (oper.value == "=>")
+		{
+			context.insertInstruction("GEQ", -999);
+		}
+	}
 private:
 	Token oper;
 	Node* left;
@@ -202,7 +229,9 @@ class Return : public Node {
 public:
 	Return(Node* express) : expression(express) {}
 
-	void codeGen(Context &context) { }
+	void codeGen(Context &context) {
+		//SKIP OVER
+	}
 private:
 	Node* expression;
 };
@@ -227,7 +256,7 @@ public:
 		for (auto i: *ids)
 		{
 			context.insertInstruction("STDIN", -999);
-			i->codeGen(context);
+			i->codeGen(context); // Needs to POPM instead of PUSHM
 		}
 
 	}
@@ -241,7 +270,14 @@ public:
 	While(Condition* cond, Node* body) : condition(cond), body(body) {}
 
 	void codeGen(Context &context) {
+		auto label = context.insertInstruction("LABEL", -999);
+		condition->codeGen(context);
+		auto jumpz = context.insertInstruction("JUMPZ", -999);
+		body->codeGen(context);
+		auto jump = context.insertInstruction("JUMP", label+1);
 
+		//Update jumpz
+		context.updateInstruction(jumpz, jump+2);
 	}
 private:
 	Condition* condition;
@@ -256,8 +292,8 @@ public:
 	string valueGen(Context &context) {
 		left->codeGen(context);
 		right->codeGen(context);
-
 		string opcode;
+
 		if (oper.value == "+")
 		{
 			opcode = "ADD";
@@ -289,6 +325,25 @@ public:
 	UrinaryExpression(Token t, Node* cent) : oper(t), center(cent) {}
 
 	string valueGen(Context &context) {
+		center->codeGen(context);
+		string opcode;
+		if (oper.value == "+")
+		{
+			opcode = "ADD";
+		}
+		else if (oper.value == "-")
+		{
+			opcode = "SUB";
+		}
+		else if (oper.value == "/")
+		{
+			opcode = "DIV";
+		}
+		else if (oper.value == "*")
+		{
+			opcode = "MUL";
+		}
+		context.insertInstruction(opcode, -999);
 		return "Test";
 	}
 private:

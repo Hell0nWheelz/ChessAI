@@ -189,6 +189,10 @@ public:
 		return errorTable.size();
 	}
 
+	void updateInstruction(int index, int operand) {
+		itable.updateInstruction(index, operand);
+	}
+
 private:
 	ITable itable; 
 	STable stable; 
