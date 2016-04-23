@@ -104,7 +104,7 @@ bool Lexer::commentCheck() {
 			}
 			tmp2 = file.get();
 
-			if (tmp1 == '*' && tmp2 == ']' || tmp2 == EOF) {
+			if ((tmp1 == '*' && tmp2 == ']') || tmp2 == EOF) {
 				return true;
 			}
 		}
