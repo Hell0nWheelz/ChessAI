@@ -89,14 +89,13 @@ top:
 }
 
 bool Lexer::commentCheck() {
-	char tmp1, tmp2;
-	tmp1 = file.get();
+	auto tmp1 = file.get();
 
 	if (file.peek(), file.eof()) //checks if the next char is eof
 		return false;
 
 	if (tmp1 == '*') {
-		tmp2 = file.get();
+		auto tmp2 = file.get();
 		while (true) {
 			tmp1 = tmp2;
 			if (tmp2 == '\n')
