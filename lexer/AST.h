@@ -41,7 +41,7 @@ public:
 		return children.end();
 	}
 
-	int size() {
+	int size() const {
 		return children.size();
 	}
 private:
@@ -156,7 +156,7 @@ public:
 		}
 		return "ERROR";
 	}
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -428,7 +428,7 @@ public:
 		return "integer";
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -445,7 +445,7 @@ public:
 		return "ERROR";
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -461,7 +461,7 @@ public:
 		return "boolean";
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -478,7 +478,7 @@ public:
 		//skip over
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return id;
 	}
 

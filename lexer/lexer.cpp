@@ -231,6 +231,6 @@ const int Lexer::DFSM[][5] = {
 	{ 6, 6, 6, 6, 6 } };	// 6 | UNKNOWN
 							//end populating Table
 
-bool Lexer::done() {
+bool Lexer::done() const {
 	return finished;
 }

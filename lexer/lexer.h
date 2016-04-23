@@ -19,7 +19,8 @@ struct Token {
 	TokenType type;
 	string value;
 	int lineNum;
-	void print(string &one, string &two) {
+
+	void print(string &one, string &two) const {
 		switch (type)
 		{
 		case IDENTIFIER:
@@ -72,7 +73,7 @@ public:
 	Token next();
 
 	//Returns if end of file has been reached or not0
-	bool done();
+	bool done() const;
 
 
 private:
