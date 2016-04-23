@@ -163,7 +163,7 @@ private:
 
 class Assign : public Node {
 public:
-	Assign(Token id, Node* express) : assignID(id), expression(express) { }
+	Assign(Token id, Expression* express) : assignID(id), expression(express) { }
 	
 	void codeGen(Context &context) { 
 		expression->codeGen(context);
@@ -173,16 +173,16 @@ public:
 
 private:
 	Token assignID;
-	Node* expression;
+	Expression* expression;
 };
 
-class Condition : public Node {
+class Condition : public Expression {
 public:
-	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
+	Condition(Token t, Expression* l, Expression* r) : oper(t), left(l), right(r) {}
 
-	void codeGen(Context &context) { 
-		left->codeGen(context);
-		right->codeGen(context);
+	string valueGen(Context &context) { 
+		auto a = left->valueGen(context);
+		auto b = right->valueGen(context);
 		if (oper.value == "<")
 		{
 			context.insertInstruction("LES", -999);
@@ -207,45 +207,78 @@ public:
 		{
 			context.insertInstruction("GEQ", -999);
 		}
+		if (a == b && a == "integer")
+		{
+			return "integer";
+		}
+		context.insertError(oper, "!=types");
+		return "ERROR";
 	}
 private:
 	Token oper;
-	Node* left;
-	Node* right;
+	Expression* left;
+	Expression* right;
 };
 
 class If : public Node {
 public:
 	If(Condition* cond, Node* istate, Node* estate) : condition(cond), ifstatement(istate), elsestatement(estate) { }
 
-	void codeGen(Context &context) { }
+	void codeGen(Context &context) { 
+		condition->codeGen(context);
+		auto jumpz = context.insertInstruction("JUMPZ", -999);
+		ifstatement->codeGen(context);
+		
+		int jump;
+		if (elsestatement)
+		{
+			jump = context.insertInstruction("JUMP", -999);
+			elsestatement->codeGen(context);
+
+		}
+		auto label = context.insertInstruction("LABEL", -999);
+		context.updateInstruction(jumpz, label + 1);
+		if (elsestatement)
+		{
+			context.updateInstruction(jump, label + 1);
+		}
+		
+	}
 private:
 	Condition* condition;
 	Node* ifstatement;
 	Node* elsestatement;
 };
 
-class Return : public Node {
+class Return : public Expression {
 public:
-	Return(Node* express) : expression(express) {}
+	Return(Expression* express, Token token) : expression(express), t(token)  {}
 
-	void codeGen(Context &context) {
+	string valueGen(Context &context) {
 		//SKIP OVER
+		context.insertError(t, "return");
+		return "ERROR";
 	}
 private:
-	Node* expression;
+	Token t;
+	Expression* expression;
 };
 
-class Write : public Node {
+class Write : public Expression {
 public:
-	Write(Node* express) : expression(express) {}
+	Write(Expression* express) : expression(express) {}
 
-	void codeGen(Context &context) {
-		expression->codeGen(context);
+	string valueGen(Context &context) {
+		auto a = expression->valueGen(context);
 		context.insertInstruction("STDOUT", -999);
+		if (a == "integer")
+		{
+			return "integer";
+		}
+		return "ERROR";
 	}
 private:
-	Node* expression;
+	Expression* expression;
 };
 
 class Read : public Node {
@@ -256,7 +289,13 @@ public:
 		for (auto i: *ids)
 		{
 			context.insertInstruction("STDIN", -999);
-			i->codeGen(context); // Needs to POPM instead of PUSHM
+			auto token = static_cast<Identifier*>(i)->getToken();
+			auto instr = context.getVariable(token);
+			if (instr == false) //Not in Symbol Table
+			{
+				context.insertError(token, "!declared");
+			}
+			context.insertInstruction("POPM", instr->first);
 		}
 
 	}
@@ -287,11 +326,11 @@ private:
 //
 class BinaryExpression : public Expression {
 public:
-	BinaryExpression(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
+	BinaryExpression(Token t, Expression* l, Expression* r) : oper(t), left(l), right(r) {}
 
 	string valueGen(Context &context) {
-		left->codeGen(context);
-		right->codeGen(context);
+		auto a = left->valueGen(context);
+		auto b = right->valueGen(context);
 		string opcode;
 
 		if (oper.value == "+")
@@ -312,43 +351,35 @@ public:
 		}
 		context.insertInstruction(opcode, -999);
 
-		return "Test";
+		if (a == b && a == "integer")
+		{
+			return "integer";
+		}
+
+		context.insertError(oper, "!=types");
+		return "ERROR";
 	}
 private:
 	Token oper;
-	Node* left;
-	Node* right;
+	Expression* left;
+	Expression* right;
 };
 
-class UrinaryExpression : public Expression {
+class UnaryExpression : public Expression {
 public:
-	UrinaryExpression(Token t, Node* cent) : oper(t), center(cent) {}
+	UnaryExpression(Token t, Expression* cent) : oper(t), center(cent) {}
 
 	string valueGen(Context &context) {
-		center->codeGen(context);
-		string opcode;
-		if (oper.value == "+")
-		{
-			opcode = "ADD";
-		}
-		else if (oper.value == "-")
-		{
-			opcode = "SUB";
-		}
-		else if (oper.value == "/")
-		{
-			opcode = "DIV";
-		}
-		else if (oper.value == "*")
-		{
-			opcode = "MUL";
-		}
-		context.insertInstruction(opcode, -999);
+		context.insertInstruction("PUSHI", 0);
+		center->valueGen(context);
+		context.insertInstruction("SUB", -999);
+		
+		
 		return "Test";
 	}
 private:
 	Token oper;
-	Node* center;
+	Expression* center;
 };
 
 class Integer : public Expression {
@@ -372,7 +403,8 @@ public:
 
 	string valueGen(Context &context) {
 		//Empty Function
-		return "SKIP";
+		context.insertError(t, "real");
+		return "ERROR";
 	}
 
 	Token getToken() {
@@ -403,7 +435,8 @@ public:
 	FunctionCall(Token t, NodeList* args) : id(t), arguments(args) {}
 
 	string valueGen(Context &context) {
-		return "SKIP";
+		context.insertError(id, "function");
+		return "ERROR";
 		//skip over
 	}
 

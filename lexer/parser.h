@@ -56,15 +56,15 @@ private:
 	While* parseWhile();						// R22
 	Condition* parseCondition();				// R23
 	//NodeList* parseRelop();					// R24 Wrote without this function
-	Node* parseExpression();					// R25
-	Node* parseExpressionPrime(Node* lhs_exp);	// R25b Recursion (expression prime)
-	Node* parseTerm();							// R26
-	Node* parseTermPrime(Node* lhs_exp); 		// R26b Recursion (term prime)
-	Node* parseFactor();						// R27
-	Node* parsePrimary();						// R28
+	Expression* parseExpression();					// R25
+	Expression* parseExpressionPrime(Expression* lhs_exp);	// R25b Recursion (expression prime)
+	Expression* parseTerm();							// R26
+	Expression* parseTermPrime(Expression* lhs_exp); 		// R26b Recursion (term prime)
+	Expression* parseFactor();						// R27
+	Expression* parsePrimary();						// R28
 	//End of Language Rule Functions
 
-	bool print = false; //used for toggling printing on and off
+	bool print = print; //used for toggling printing on and off
 	void displayToken(Token t);
 	void throwError(string s, Token &t);
 	Token token;
@@ -721,8 +721,8 @@ If* Parser::parseIfPrime(Condition *condition, Node *ifStatement) {
 
 // R19 <Return> => return ; | return <Expression>
 Return* Parser::parseReturn() {
-	token = getToken();
-	if (token.value != "return")
+	auto ret = getToken();
+	if (ret.value != "return")
 	{
 		throwError("Error, expected RETURN.", token);
 	}
@@ -735,7 +735,7 @@ Return* Parser::parseReturn() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-		return new Return(nullptr);
+		return new Return(nullptr, ret);
 	}
 	else
 	{
@@ -759,7 +759,7 @@ Return* Parser::parseReturn() {
 		}
 		// ~~~~ PRINT END ~~~~
 
-		return new Return(exp);
+		return new Return(exp, ret);
 	}
 }
 
@@ -938,7 +938,7 @@ Condition* Parser::parseCondition() {
 // R24 Removed and handled in R23 parseCondition();
 
 // R25 <Expression> => <Term> <ExpressionPrime>
-Node* Parser::parseExpression() {
+Expression* Parser::parseExpression() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		outFile << setw(22) << "<Expression> =>" << "<Term> <ExpressionPrime>" << endl;;
@@ -951,8 +951,8 @@ Node* Parser::parseExpression() {
 }
 
 // R25 <ExpressionPrime> => + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | empty
-Node* Parser::parseExpressionPrime(Node* lhs) {
-	Node* rhs = nullptr;
+Expression* Parser::parseExpressionPrime(Expression* lhs) {
+	Expression* rhs = nullptr;
 	auto op = getToken();
 	if (token.value == "+" || token.value == "-") 
 	{
@@ -979,7 +979,7 @@ Node* Parser::parseExpressionPrime(Node* lhs) {
 }
 
 // R26 <Term> => <Factor> <TermPrime>
-Node* Parser::parseTerm() {
+Expression* Parser::parseTerm() {
 	// ~~~~ PRINT START ~~~~
 	if (print) {
 		outFile << setw(22) << "<Term> =>" << "<Factor> <TermPrime>" << endl;;
@@ -990,9 +990,9 @@ Node* Parser::parseTerm() {
 }
 
 // R26 <TermPrime> => * <Factor> <TermPrime> | / <Factor> <TermPrime> | empty
-Node* Parser::parseTermPrime(Node* lhs) {
+Expression* Parser::parseTermPrime(Expression* lhs) {
 	auto op = getToken();
-	auto rhs = nullptr;
+	Expression* rhs = nullptr;
 	if (token.value == "*" || token.value == "/")
 	{
 		// ~~~~ PRINT START ~~~~
@@ -1002,7 +1002,7 @@ Node* Parser::parseTermPrime(Node* lhs) {
 			cout << setw(22) << "<TermPrime> =>" << token.value + " <Factor> <TermPrime>" << endl;;
 		}
 		// ~~~~ PRINT END ~~~~
-		auto rhs = parseTermPrime(parseFactor());
+		rhs = parseTermPrime(parseFactor());
 	}
 	else
 	{
@@ -1012,7 +1012,7 @@ Node* Parser::parseTermPrime(Node* lhs) {
 }
 
 // R27 <Factor> => - <Primary> | <Primary>
-Node* Parser::parseFactor() {
+Expression* Parser::parseFactor() {
 	auto op = getToken();
 	if (token.value == "-")
 	{
@@ -1023,7 +1023,7 @@ Node* Parser::parseFactor() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
-		return new UrinaryExpression(op, parsePrimary());
+		return new UnaryExpression(op, parsePrimary());
 	}
 	else
 	{
@@ -1039,7 +1039,7 @@ Node* Parser::parseFactor() {
 }
 
 // R28 <Primary> => <Identifier> | <Integer> | <Real> | <Identifier> ( <IDs> ) | (Expression) | true | false
-Node* Parser::parsePrimary() {
+Expression* Parser::parsePrimary() {
 	token = getToken();
 	// ~~~~ PRINT START ~~~~
 	if (print) {

@@ -1,26 +1,38 @@
  #                  OP             OPERAND
 
- 1               PUSHI                   0
- 2                POPM                5002
- 3               PUSHI                   1
- 4                POPM                5000
- 5               STDIN
- 6               PUSHM                5001
- 7               LABEL
- 8               PUSHM                5000
- 9               PUSHM                5001
-10                 LES
-11               JUMPZ                  21
-12               PUSHM                5002
-13               PUSHM                5000
-14                 ADD
-15                POPM                5002
-16               PUSHM                5000
-17               PUSHI                   1
-18                 ADD
-19                POPM                5000
-20                JUMP                   7
-21               PUSHM                5002
-22               PUSHM                5001
-23                 ADD
-24              STDOUT
+ 1               PUSHM                5000
+ 2               PUSHM                5001
+ 3                 GRT
+ 4               JUMPZ                  10
+ 5               PUSHM                5002
+ 6                POPM                5000
+ 7                JUMP                  10
+ 8               PUSHM                5002
+ 9                POPM                5000
+10               LABEL
+11               PUSHI                   1
+12               PUSHI                   0
+13                 MUL
+14                POPM                5002
+15               PUSHI                   1
+16                POPM                5000
+17               STDIN
+18                POPM                5001
+19               LABEL
+20               PUSHM                5000
+21               PUSHM                5001
+22                 LES
+23               JUMPZ                  33
+24               PUSHM                5002
+25               PUSHM                5000
+26                 ADD
+27                POPM                5002
+28               PUSHM                5000
+29               PUSHI                   1
+30                 ADD
+31                POPM                5000
+32                JUMP                  19
+33               PUSHM                5002
+34               PUSHM                5001
+35                 ADD
+36              STDOUT
