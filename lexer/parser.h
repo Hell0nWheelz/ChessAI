@@ -64,7 +64,7 @@ private:
 	Expression* parsePrimary();						// R28
 	//End of Language Rule Functions
 
-	bool print = print; //used for toggling printing on and off
+	bool print = false; //used for toggling printing on and off
 	void displayToken(Token t);
 	void throwError(string s, Token &t);
 	Token token;
@@ -105,7 +105,6 @@ void Parser::throwError(string s, Token &t) {
 	outFile.close();
 	system("pause");
 	exit(666);
-	return;
 }
 
 // Rule 1  <Rat16S> => <Opt Function Definitions> $$ <Opt Declaration List> $$ <Statement List> $$
@@ -1113,6 +1112,7 @@ Expression* Parser::parsePrimary() {
 			displayToken(token);
 		}
 		// ~~~~ PRINT END ~~~~
+		return exp;
 	}
 	else if (token.type == REAL)
 	{

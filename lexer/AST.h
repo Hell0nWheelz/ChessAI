@@ -41,7 +41,7 @@ public:
 		return children.end();
 	}
 
-	int size() {
+	int size() const {
 		return children.size();
 	}
 private:
@@ -63,6 +63,14 @@ public:
 			i->codeGen(context);
 		}
 	}
+
+	~RootNode()
+	{
+		delete defs;
+		delete decls;
+		delete statements;
+	}
+
 private:
 	NodeList *defs; // would be null if not there
 	NodeList *decls;
@@ -79,6 +87,14 @@ public:
 	void codeGen(Context &context) {
 		//Skip Over
 	}
+
+	~FunctionDef()
+	{
+		delete params;
+		delete decls;
+		delete body;
+	}
+
 private:
 	Token funcID;
 	NodeList *params;
@@ -88,11 +104,17 @@ private:
 
 class ParamDef : public Node {
 public:
-	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
+	ParamDef(NodeList* ids, Token qual) : qualifier(qual), ids(ids) { }
 
 	void codeGen(Context &context) {
 		//Skip over
 	}
+
+	~ParamDef()
+	{
+		delete ids;
+	}
+
 private:
 	Token qualifier;
 	NodeList* ids;
@@ -119,7 +141,7 @@ private:
 
 class Identifier : public Expression {
 public:
-	Identifier(Token t) : t(t) {}
+	explicit Identifier(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
 		auto id = context.getVariable(t);
@@ -134,7 +156,7 @@ public:
 		}
 		return "ERROR";
 	}
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -262,13 +284,19 @@ private:
 
 class Return : public Expression {
 public:
-	Return(Expression* express, Token token) : expression(express), t(token)  {}
+	Return(Expression* express, Token token) : t(token), expression(express) {}
 
 	string valueGen(Context &context) {
 		//SKIP OVER
 		context.insertError(t, "return");
 		return "ERROR";
 	}
+
+	~Return()
+	{
+		delete expression;
+	}
+
 private:
 	Token t;
 	Expression* expression;
@@ -276,7 +304,7 @@ private:
 
 class Write : public Expression {
 public:
-	Write(Expression* express) : expression(express) {}
+	explicit Write(Expression* express) : expression(express) {}
 
 	string valueGen(Context &context) {
 		auto a = expression->valueGen(context);
@@ -293,7 +321,7 @@ private:
 
 class Read : public Node {
 public:
-	Read(NodeList* identifiers) : ids(identifiers) {}
+	explicit Read(NodeList* identifiers) : ids(identifiers) {}
 
 	void codeGen(Context &context) { 
 		for (auto i: *ids)
@@ -301,7 +329,7 @@ public:
 			context.insertInstruction("STDIN", -999);
 			auto token = static_cast<Identifier*>(i)->getToken();
 			auto instr = context.getVariable(token);
-			if (instr == false) //Not in Symbol Table
+			if (!instr) //Not in Symbol Table
 			{
 				context.insertError(token, "!declared");
 			}
@@ -394,13 +422,13 @@ private:
 
 class Integer : public Expression {
 public:
-	Integer(Token t) : t(t) {}
+	explicit Integer(Token t) : t(t) {}
 	string valueGen(Context &context) {
 		context.insertInstruction("PUSHI", stoi(t.value));
 		return "integer";
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -409,7 +437,7 @@ private:
 
 class Real : public Expression {
 public:
-	Real(Token t) : t(t) {}
+	explicit Real(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
 		//Empty Function
@@ -417,7 +445,7 @@ public:
 		return "ERROR";
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -426,14 +454,14 @@ private:
 
 class Bool : public Expression {
 public:
-	Bool(Token t) : t(t) {}
+	explicit Bool(Token t) : t(t) {}
 
 	string valueGen(Context &context) {
 		context.insertInstruction("PUSHI", t.value == "true" ? 1 : 0);
 		return "boolean";
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return t;
 	}
 private:
@@ -450,9 +478,15 @@ public:
 		//skip over
 	}
 
-	Token getToken() {
+	Token getToken() const {
 		return id;
 	}
+
+	~FunctionCall()
+	{
+		delete arguments;
+	}
+
 private:
 	Token id;
 	NodeList* arguments;

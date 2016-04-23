@@ -15,6 +15,7 @@
 using namespace std;
 
 Lexer::Lexer(string input)
+: c{}, currState{}, prevState{}
 {
 	file.open(input);
 	finished = false;
@@ -88,14 +89,13 @@ top:
 }
 
 bool Lexer::commentCheck() {
-	char tmp1, tmp2;
-	tmp1 = file.get();
+	auto tmp1 = file.get();
 
 	if (file.peek(), file.eof()) //checks if the next char is eof
 		return false;
 
 	if (tmp1 == '*') {
-		tmp2 = file.get();
+		auto tmp2 = file.get();
 		while (true) {
 			tmp1 = tmp2;
 			if (tmp2 == '\n')
@@ -104,7 +104,7 @@ bool Lexer::commentCheck() {
 			}
 			tmp2 = file.get();
 
-			if (tmp1 == '*' && tmp2 == ']' || tmp2 == EOF) {
+			if ((tmp1 == '*' && tmp2 == ']') || tmp2 == EOF) {
 				return true;
 			}
 		}
@@ -191,7 +191,7 @@ void Lexer::numOrID(int state) {
 		token.type = IDENTIFIER;
 		token.value = s;
 
-		for (int i = 0; i < sizeof(keywords) / sizeof(string); i++) {
+		for (size_t i = 0; i < sizeof(keywords) / sizeof(string); i++) {
 			if (s == keywords[i]) {
 				token.type = KEYWORD;
 				token.value = s;
@@ -231,6 +231,6 @@ const int Lexer::DFSM[][5] = {
 	{ 6, 6, 6, 6, 6 } };	// 6 | UNKNOWN
 							//end populating Table
 
-bool Lexer::done() {
+bool Lexer::done() const {
 	return finished;
 }
