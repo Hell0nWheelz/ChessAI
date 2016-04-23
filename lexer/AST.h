@@ -301,7 +301,7 @@ public:
 			context.insertInstruction("STDIN", -999);
 			auto token = static_cast<Identifier*>(i)->getToken();
 			auto instr = context.getVariable(token);
-			if (instr == false) //Not in Symbol Table
+			if (!instr) //Not in Symbol Table
 			{
 				context.insertError(token, "!declared");
 			}
