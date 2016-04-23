@@ -56,7 +56,7 @@ public:
 		a = new tuple<string, int, string>[table.size()];
 		for (auto val : table)
 		{
-			a[val.second.first - 5000] = { val.first, val.second.first, val.second.second};
+			a[val.second.first - 5000] = make_tuple(val.first, val.second.first, val.second.second);
 		}
 
 		ofstream outFile; 
