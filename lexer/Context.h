@@ -79,6 +79,7 @@ public:
 			}
 		}
 		outFile.close();
+		delete[] a;
 	}
 
 private:
