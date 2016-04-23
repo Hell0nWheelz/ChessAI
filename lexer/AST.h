@@ -88,7 +88,7 @@ private:
 
 class ParamDef : public Node {
 public:
-	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
+	ParamDef(NodeList* ids, Token qual) : qualifier(qual), ids(ids) { }
 
 	void codeGen(Context &context) {
 		//Skip over
@@ -262,7 +262,7 @@ private:
 
 class Return : public Expression {
 public:
-	Return(Expression* express, Token token) : expression(express), t(token)  {}
+	Return(Expression* express, Token token) : t(token), expression(express) {}
 
 	string valueGen(Context &context) {
 		//SKIP OVER
