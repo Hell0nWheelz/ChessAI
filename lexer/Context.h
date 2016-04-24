@@ -162,7 +162,7 @@ public:
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' has already been declared.";
 		}
-		if (e == "!=type")
+		if (e == "type")
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' left and right expression types don't match.";
 		}
