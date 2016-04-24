@@ -1,0 +1,47 @@
+ #                  OP             OPERAND
+
+ 1               STDIN
+ 2                POPM                5000
+ 3               STDIN
+ 4                POPM                5001
+ 5               STDIN
+ 6                POPM                5002
+ 7               LABEL
+ 8               PUSHM                5000
+ 9               PUSHM                5001
+10                 LES
+11               JUMPZ                  46
+12               PUSHM                5000
+13              STDOUT
+14               PUSHM                5000
+15              STDOUT
+16               PUSHM                5000
+17               PUSHM                5002
+18                 ADD
+19                POPM                5000
+20               PUSHM                5007
+21               PUSHM                5003
+22                 GRT
+23               JUMPZ                  42
+24               PUSHM                5004
+25               PUSHM                5005
+26                 EQU
+27               JUMPZ                  30
+28               PUSHM                5005
+29                POPM                5004
+30               LABEL
+31                JUMP                  42
+32               PUSHM                5007
+33               PUSHM                5003
+34                 LES
+35               JUMPZ                  41
+36               PUSHM                5004
+37                POPM                5005
+38                JUMP                  41
+39               PUSHM                5006
+40                POPM                5004
+41               LABEL
+42               LABEL
+43               PUSHM                5003
+44                POPM                5007
+45                JUMP                   7

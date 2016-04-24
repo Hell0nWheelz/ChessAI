@@ -210,3 +210,6 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+/lexer.VC.VC.opendb
+/lexer.VC.db
+/lexer/generated_sample.txt

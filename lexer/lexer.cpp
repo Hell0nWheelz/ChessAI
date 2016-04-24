@@ -1,6 +1,6 @@
 /* Lexer by Micah Madru & Bryan Bonner
-*	CPSC 323 Assignment 1
-*	March 7th, 2016
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
 *
 */
 #include <fstream>
@@ -15,6 +15,7 @@
 using namespace std;
 
 Lexer::Lexer(string input)
+: c{}, currState{}, prevState{}
 {
 	file.open(input);
 	finished = false;
@@ -88,14 +89,13 @@ top:
 }
 
 bool Lexer::commentCheck() {
-	char tmp1, tmp2;
-	tmp1 = file.get();
+	auto tmp1 = file.get();
 
 	if (file.peek(), file.eof()) //checks if the next char is eof
 		return false;
 
 	if (tmp1 == '*') {
-		tmp2 = file.get();
+		auto tmp2 = file.get();
 		while (true) {
 			tmp1 = tmp2;
 			if (tmp2 == '\n')
@@ -104,7 +104,7 @@ bool Lexer::commentCheck() {
 			}
 			tmp2 = file.get();
 
-			if (tmp1 == '*' && tmp2 == ']' || tmp2 == EOF) {
+			if ((tmp1 == '*' && tmp2 == ']') || tmp2 == EOF) {
 				return true;
 			}
 		}
@@ -148,10 +148,18 @@ void Lexer::getSymbol() {
 void Lexer::numOrID(int state) {
 	s = c;
 	currState = state;
+	bool EOFbit = true;
+
+	if (file.peek() == EOF)
+	{
+		finished = true;
+		EOFbit = false;
+		prevState = currState;
+	}
 
 	file.get(c);
 
-	while (true) {
+	while (EOFbit) {
 		prevState = currState;
 		if (isalpha(c)) {
 			c = tolower(c); //Convert to lower case
@@ -183,7 +191,7 @@ void Lexer::numOrID(int state) {
 		token.type = IDENTIFIER;
 		token.value = s;
 
-		for (int i = 0; i < sizeof(keywords) / sizeof(string); i++) {
+		for (size_t i = 0; i < sizeof(keywords) / sizeof(string); i++) {
 			if (s == keywords[i]) {
 				token.type = KEYWORD;
 				token.value = s;
@@ -223,6 +231,6 @@ const int Lexer::DFSM[][5] = {
 	{ 6, 6, 6, 6, 6 } };	// 6 | UNKNOWN
 							//end populating Table
 
-bool Lexer::done() {
+bool Lexer::done() const {
 	return finished;
 }

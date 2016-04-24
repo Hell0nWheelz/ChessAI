@@ -1,32 +1,48 @@
+/* Lexer by Micah Madru & Bryan Bonner
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
+*
+*/
 #include <vector>
 #include <iostream>
+#include "Context.h"
 
 using namespace std;
 
 class Node
 {
 public:
-	Node();
-	virtual ~Node();
+	Node() {}
+	virtual ~Node() {}
 
-	//virtual void print();
-	//virtual void codeGen();
+	virtual void codeGen(Context &context) = 0;
+
 private:
 
 };
-
-Node::Node()
-{
-}
-
-Node::~Node()
-{
-}
 
 class NodeList : public Node {
 public:
 	void add(Node* node){
 		children.push_back(node);
+	}
+	void codeGen(Context &context) {
+		for (auto i:children)
+		{
+			i->codeGen(context);
+		}
+	}
+
+	vector<Node*>::iterator begin() {
+		return children.begin();
+	}
+
+	vector<Node*>::iterator end() {
+		return children.end();
+	}
+
+	int size() const {
+		return children.size();
 	}
 private:
 	vector<Node*> children;
@@ -34,7 +50,27 @@ private:
 
 class RootNode : public Node {
 public:
+	
 	RootNode(NodeList* f, NodeList* d, NodeList* s) : defs(f), decls(d), statements(s) { }
+	void codeGen(Context &context) {
+		for (auto i : *decls) //iterate through all declerations
+		{
+			i->codeGen(context);
+		}
+
+		for (auto i : *statements) //iterate through all statements
+		{
+			i->codeGen(context);
+		}
+	}
+
+	~RootNode()
+	{
+		delete defs;
+		delete decls;
+		delete statements;
+	}
+
 private:
 	NodeList *defs; // would be null if not there
 	NodeList *decls;
@@ -47,6 +83,18 @@ public:
 	FunctionDef(Token id, NodeList* params, NodeList* declarations, NodeList* body)
 		//Default Constructor Syntax
 		: funcID(id), params(params), decls(declarations), body(body) { }
+
+	void codeGen(Context &context) {
+		//Skip Over
+	}
+
+	~FunctionDef()
+	{
+		delete params;
+		delete decls;
+		delete body;
+	}
+
 private:
 	Token funcID;
 	NodeList *params;
@@ -56,123 +104,412 @@ private:
 
 class ParamDef : public Node {
 public:
-	ParamDef(NodeList* ids, Token qual) : ids(ids), qualifier(qual) { }
+	ParamDef(NodeList* ids, Token qual) : qualifier(qual), ids(ids) { }
+
+	void codeGen(Context &context) {
+		//Skip over
+	}
+
+	~ParamDef()
+	{
+		delete ids;
+	}
+
 private:
 	Token qualifier;
 	NodeList* ids;
+};
+
+class Expression : public Node
+{
+public:
+	Expression() {}
+	~Expression() {}
+
+	void codeGen(Context &context) {
+		valueGen(context);
+	}
+
+	virtual string valueGen(Context &context) = 0;
+private:
+
+};
+
+class Identifier : public Expression {
+public:
+	explicit Identifier(Token t) : t(t) {}
+
+	string valueGen(Context &context) {
+		auto id = context.getVariable(t);
+		if (!id)
+		{
+			context.insertError(t, "!declared"); 
+		}
+		else
+		{
+			context.insertInstruction("PUSHM", id->first);
+			return id->second; //RETURNS THE TYPE
+		}
+		return "ERROR";
+	}
+	Token getToken() const {
+		return t;
+	}
+private:
+	Token t;
 };
 
 class Declaration : public Node {
 public:
 	Declaration(Token qual, NodeList* ids) : qualifier(qual), ids(ids) { }
+	void codeGen(Context &context) {
+		for (auto i:*ids)
+		{
+			auto token = static_cast<Identifier*>(i)->getToken();
+			auto a = context.insertVariable(token, qualifier.value);
+			if (a == false) //Already in Symbol Table;
+			{
+				context.insertError(token, "declared");
+			}
+		}
+	}
+
 private:
 	Token qualifier;
 	NodeList* ids;
 };
 
-class Assign : public Node {
+class Assign : public Expression {
 public:
-	Assign(Token id, Node* express) : assignID(id), expression(express) { }
+	Assign(Token id, Expression* express) : assignID(id), expression(express) { }
+	
+	string valueGen(Context &context) { 
+		auto a = expression->valueGen(context);
+		auto address = context.getVariable(assignID); //GET MEMORY ADDRESS
+		if (!address)
+		{
+			context.insertError(assignID, "!declared");
+			return "ERROR";
+		}
+		context.insertInstruction("POPM", address->first); //OP + MEMORY ADDRESS
+		if (a == address->second)
+		{
+			return a;
+		}
+		return "ERROR";
+	}
+
 private:
 	Token assignID;
-	Node* expression;
+	Expression* expression;
 };
 
-class Condition : public Node {
+class Condition : public Expression {
 public:
-	Condition(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
+	Condition(Token t, Expression* l, Expression* r) : oper(t), left(l), right(r) {}
+
+	string valueGen(Context &context) { 
+		auto a = left->valueGen(context);
+		auto b = right->valueGen(context);
+		if (oper.value == "<")
+		{
+			context.insertInstruction("LES", -999);
+		}
+		else if (oper.value == ">")
+		{
+			context.insertInstruction("GRT", -999);
+		}
+		else if (oper.value == "=")
+		{
+			context.insertInstruction("EQU", -999);
+		}
+		else if (oper.value == "/=")
+		{
+			context.insertInstruction("NEQ", -999);
+		}
+		else if (oper.value == "<=")
+		{
+			context.insertInstruction("LEQ", -999);
+		}
+		else if (oper.value == "=>")
+		{
+			context.insertInstruction("GEQ", -999);
+		}
+		if (a == "ERROR" || b == "ERROR")
+		{
+			return "ERROR";
+		}
+		if (a == b && a == "integer")
+		{
+			return "integer";
+		}
+		if (a == b && a == "boolean")
+		{
+			return "boolean";
+		}
+		context.insertError(oper, "type");
+		return "ERROR";
+	}
 private:
 	Token oper;
-	Node* left;
-	Node* right;
+	Expression* left;
+	Expression* right;
 };
 
 class If : public Node {
 public:
 	If(Condition* cond, Node* istate, Node* estate) : condition(cond), ifstatement(istate), elsestatement(estate) { }
+
+	void codeGen(Context &context) { 
+		condition->codeGen(context);
+		auto jumpz = context.insertInstruction("JUMPZ", -999);
+		ifstatement->codeGen(context);
+		
+		int jump;
+		if (elsestatement)
+		{
+			jump = context.insertInstruction("JUMP", -999);
+			elsestatement->codeGen(context);
+
+		}
+		auto label = context.insertInstruction("LABEL", -999);
+		context.updateInstruction(jumpz, label + 1);
+		if (elsestatement)
+		{
+			context.updateInstruction(jump, label + 1);
+		}
+		
+	}
 private:
 	Condition* condition;
 	Node* ifstatement;
 	Node* elsestatement;
 };
 
-class Return : public Node {
+class Return : public Expression {
 public:
-	Return(Node* express) : expression(express) {}
+	Return(Expression* express, Token token) : t(token), expression(express) {}
+
+	string valueGen(Context &context) {
+		//SKIP OVER
+		context.insertError(t, "return");
+		return "ERROR";
+	}
+
+	~Return()
+	{
+		delete expression;
+	}
+
 private:
-	Node* expression;
+	Token t;
+	Expression* expression;
 };
 
-class Write : public Node {
+class Write : public Expression {
 public:
-	Write(Node* express) : expression(express) {}
+	explicit Write(Expression* express) : expression(express) {}
+
+	string valueGen(Context &context) {
+		auto a = expression->valueGen(context);
+		context.insertInstruction("STDOUT", -999);
+		if (a == "integer")
+		{
+			return "integer";
+		}
+		return "ERROR";
+	}
 private:
-	Node* expression;
+	Expression* expression;
 };
 
 class Read : public Node {
 public:
-	Read(NodeList* identifiers) : ids(identifiers) {}
+	explicit Read(NodeList* identifiers) : ids(identifiers) {}
+
+	void codeGen(Context &context) { 
+		for (auto i: *ids)
+		{
+			context.insertInstruction("STDIN", -999);
+			auto token = static_cast<Identifier*>(i)->getToken();
+			auto instr = context.getVariable(token);
+			if (!instr) //Not in Symbol Table
+			{
+				context.insertError(token, "!declared");
+			}
+			context.insertInstruction("POPM", instr->first);
+		}
+
+	}
 private:
 	NodeList* ids;
 };
 
+//
 class While : public Node {
 public:
 	While(Condition* cond, Node* body) : condition(cond), body(body) {}
+
+	void codeGen(Context &context) {
+		auto label = context.insertInstruction("LABEL", -999);
+		condition->codeGen(context);
+		auto jumpz = context.insertInstruction("JUMPZ", -999);
+		body->codeGen(context);
+		auto jump = context.insertInstruction("JUMP", label+1);
+
+		//Update jumpz
+		context.updateInstruction(jumpz, jump+2);
+	}
 private:
 	Condition* condition;
 	Node* body;
 };
 
-class BinaryExpression : public Node {
+//
+class BinaryExpression : public Expression {
 public:
-	BinaryExpression(Token t, Node* l, Node* r) : oper(t), left(l), right(r) {}
+	BinaryExpression(Token t, Expression* l, Expression* r) : oper(t), left(l), right(r) {}
+
+	string valueGen(Context &context) {
+		auto a = left->valueGen(context);
+		auto b = right->valueGen(context);
+		string opcode;
+
+		if (oper.value == "+")
+		{
+			opcode = "ADD";
+		}
+		else if (oper.value == "-")
+		{
+			opcode = "SUB";
+		}
+		else if (oper.value == "/")
+		{
+			opcode = "DIV";
+		}
+		else if (oper.value == "*")
+		{
+			opcode = "MUL";
+		}
+		context.insertInstruction(opcode, -999);
+		if (a == "ERROR" || b == "ERROR")
+		{
+			return "ERROR";
+		}
+		if (a == b && a == "integer")
+		{
+			return "integer";
+		}
+		if (a == b && a == "boolean")
+		{
+			context.insertError(oper, "boolmath");
+			return "ERROR";
+		}
+		context.insertError(oper, "type");
+		return "ERROR";
+	}
 private:
 	Token oper;
-	Node* left;
-	Node* right;
+	Expression* left;
+	Expression* right;
 };
 
-class UrinaryExpression : public Node {
+class UnaryExpression : public Expression {
 public:
-	UrinaryExpression(Token t, Node* cent) : oper(t), center(cent) {}
+	UnaryExpression(Token t, Expression* cent) : oper(t), center(cent) {}
+
+	string valueGen(Context &context) {
+		context.insertInstruction("PUSHI", 0);
+		auto a = center->valueGen(context);
+		context.insertInstruction("SUB", -999);
+		if (a == "ERROR")
+		{
+			return "ERROR";
+		}
+		if (a == "integer")
+		{
+			return "integer";
+		}
+		if (a == "boolean")
+		{
+			context.insertError(oper, "boolmath");
+			return "ERROR";
+		}
+		
+		return "ERROR";
+	}
 private:
 	Token oper;
-	Node* center;
+	Expression* center;
 };
 
-class Identifier : public Node {
+class Integer : public Expression {
 public:
-	Identifier(Token t) : value(t) {}
+	explicit Integer(Token t) : t(t) {}
+	string valueGen(Context &context) {
+		context.insertInstruction("PUSHI", stoi(t.value));
+		return "integer";
+	}
+
+	Token getToken() const {
+		return t;
+	}
 private:
-	Token value;
+	Token t;
 };
 
-class Integer : public Node {
+class Real : public Expression {
 public:
-	Integer(Token t) : value(t) {}
+	explicit Real(Token t) : t(t) {}
+
+	string valueGen(Context &context) {
+		//Empty Function
+		context.insertError(t, "real");
+		return "ERROR";
+	}
+
+	Token getToken() const {
+		return t;
+	}
 private:
-	Token value;
+	Token t;
 };
 
-class Real : public Node {
+class Bool : public Expression {
 public:
-	Real(Token t) : value(t) {}
+	explicit Bool(Token t) : t(t) {}
+
+	string valueGen(Context &context) {
+		context.insertInstruction("PUSHI", t.value == "true" ? 1 : 0);
+		return "boolean";
+	}
+
+	Token getToken() const {
+		return t;
+	}
 private:
-	Token value;
+	Token t;
 };
 
-class Bool : public Node {
-public:
-	Bool(Token t) : value(t) {}
-private:
-	Token value;
-};
-
-class FunctionCall : public Node {
+class FunctionCall : public Expression {
 public:
 	FunctionCall(Token t, NodeList* args) : id(t), arguments(args) {}
+
+	string valueGen(Context &context) {
+		context.insertError(id, "function");
+		return "ERROR";
+		//skip over
+	}
+
+	Token getToken() const {
+		return id;
+	}
+
+	~FunctionCall()
+	{
+		delete arguments;
+	}
+
 private:
 	Token id;
 	NodeList* arguments;

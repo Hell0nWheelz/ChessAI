@@ -1,6 +1,6 @@
 /* Lexer by Micah Madru & Bryan Bonner
-*	CPSC 323 Assignment 1
-*	March 7th, 2016
+*	CPSC 323 Assignment 2
+*	April 6th, 2016
 *
 */
 #ifndef _LEXER_H_
@@ -19,7 +19,8 @@ struct Token {
 	TokenType type;
 	string value;
 	int lineNum;
-	void print(string &one, string &two) {
+
+	void print(string &one, string &two) const {
 		switch (type)
 		{
 		case IDENTIFIER:
@@ -63,7 +64,7 @@ struct Token {
 class Lexer {
 public:
 	//Constructor opens inputed filename and outputted filename
-	Lexer(string input);
+	explicit Lexer(string input);
 
 	//Deconstructor closes inputed file
 	~Lexer();
@@ -72,7 +73,7 @@ public:
 	Token next();
 
 	//Returns if end of file has been reached or not0
-	bool done();
+	bool done() const;
 
 
 private:
@@ -80,7 +81,6 @@ private:
 	fstream file;
 	int currState;
 	int prevState;
-	int line;
 	const static int DFSM[][5];
 	bool finished;
 	string s;
