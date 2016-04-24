@@ -41,7 +41,7 @@ public:
 		return children.end();
 	}
 
-	int size() const {
+	size_t size() const {
 		return children.size();
 	}
 private:

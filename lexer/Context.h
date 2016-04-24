@@ -194,7 +194,7 @@ public:
 		return stable.getVariable(t);
 	}
 
-	int printError(string s) {
+	size_t printError(string s) {
 		ofstream outFile;
 		outFile.open(s);
 
