@@ -19,6 +19,3 @@ cppcheck :
 
 analyze : clean
 	scan-build make compiler
-
-tests : compiler
-	cd ../tests; ./unitTest.py $(UNITTEST_ARG)
