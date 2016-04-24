@@ -173,6 +173,9 @@ public:
 			}
 		}
 	}
+	~Declaration() {
+		delete ids;
+	}
 
 private:
 	Token qualifier;
@@ -197,6 +200,9 @@ public:
 			return a;
 		}
 		return "ERROR";
+	}
+	~Assign() {
+		delete expression;
 	}
 
 private:
@@ -250,6 +256,10 @@ public:
 		context.insertError(oper, "type");
 		return "ERROR";
 	}
+	~Condition() {
+		delete left;
+		delete right;
+	}
 private:
 	Token oper;
 	Expression* left;
@@ -278,7 +288,11 @@ public:
 		{
 			context.updateInstruction(jump, label + 1);
 		}
-		
+	}
+	~If() {
+		delete condition;
+		delete ifstatement;
+		delete elsestatement;
 	}
 private:
 	Condition* condition;
@@ -319,6 +333,9 @@ public:
 		}
 		return "ERROR";
 	}
+	~Write() {
+		delete expression;
+	}
 private:
 	Expression* expression;
 };
@@ -339,7 +356,9 @@ public:
 			}
 			context.insertInstruction("POPM", instr->first);
 		}
-
+	}
+	~Read() {
+		delete ids;
 	}
 private:
 	NodeList* ids;
@@ -359,6 +378,10 @@ public:
 
 		//Update jumpz
 		context.updateInstruction(jumpz, jump+2);
+	}
+	~While() {
+		delete condition;
+		delete body;
 	}
 private:
 	Condition* condition;
@@ -408,6 +431,10 @@ public:
 		context.insertError(oper, "type");
 		return "ERROR";
 	}
+	~BinaryExpression() {
+		delete left;
+		delete right;
+	}
 private:
 	Token oper;
 	Expression* left;
@@ -437,6 +464,9 @@ public:
 		}
 		
 		return "ERROR";
+	}
+	~UnaryExpression() {
+		delete center;
 	}
 private:
 	Token oper;
