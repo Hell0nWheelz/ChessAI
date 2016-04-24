@@ -195,11 +195,10 @@ public:
 	}
 
 	size_t printError(string s) {
-		ofstream outFile;
-		outFile.open(s);
-
 		if (errorTable.size() > 0)
 		{
+			ofstream outFile;
+			outFile.open(s);
 			outFile << setw(25) << right << "ERROR TABLE" << endl;
 			if (print)
 			{
