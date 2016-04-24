@@ -235,9 +235,17 @@ public:
 		{
 			context.insertInstruction("GEQ", -999);
 		}
+		if (a == "ERROR" || b == "ERROR")
+		{
+			return "ERROR";
+		}
 		if (a == b && a == "integer")
 		{
 			return "integer";
+		}
+		if (a == b && a == "boolean")
+		{
+			return "boolean";
 		}
 		context.insertError(oper, "type");
 		return "ERROR";
@@ -392,7 +400,11 @@ public:
 		{
 			return "integer";
 		}
-
+		if (a == b && a == "boolean")
+		{
+			context.insertError(oper, "boolmath");
+			return "ERROR";
+		}
 		context.insertError(oper, "type");
 		return "ERROR";
 	}
@@ -408,11 +420,23 @@ public:
 
 	string valueGen(Context &context) {
 		context.insertInstruction("PUSHI", 0);
-		center->valueGen(context);
+		auto a = center->valueGen(context);
 		context.insertInstruction("SUB", -999);
+		if (a == "ERROR")
+		{
+			return "ERROR";
+		}
+		if (a == "integer")
+		{
+			return "integer";
+		}
+		if (a == "boolean")
+		{
+			context.insertError(oper, "boolmath");
+			return "ERROR";
+		}
 		
-		
-		return "Test";
+		return "ERROR";
 	}
 private:
 	Token oper;

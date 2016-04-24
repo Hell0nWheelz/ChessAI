@@ -172,9 +172,13 @@ public:
 		}
 		if (e == "function")
 		{
-			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' functions not supported in v3.14 of this compiler";
+			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' functions not supported in v3.14 of this compiler.";
 		}
-			
+		if (e == "boolmath")
+		{
+			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' boolean arithmatic operation not allowed.";
+		}
+
 		errorTable.push_back(error);
 	}
 
