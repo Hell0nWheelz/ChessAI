@@ -423,7 +423,7 @@ public:
 		{
 			return "integer";
 		}
-		if (a == b && a == "boolean")
+		if (a == "boolean" || b == "boolean")
 		{
 			context.insertError(oper, "boolmath");
 			return "ERROR";
