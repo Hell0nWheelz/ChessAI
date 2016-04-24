@@ -130,10 +130,6 @@ public:
 		valueGen(context);
 	}
 
-	Token getToken() {
-		return getToken();
-	}
-
 	virtual string valueGen(Context &context) = 0;
 private:
 
@@ -243,7 +239,7 @@ public:
 		{
 			return "integer";
 		}
-		context.insertError(oper, "!=types");
+		context.insertError(oper, "type");
 		return "ERROR";
 	}
 private:
@@ -388,13 +384,16 @@ public:
 			opcode = "MUL";
 		}
 		context.insertInstruction(opcode, -999);
-
+		if (a == "ERROR" || b == "ERROR")
+		{
+			return "ERROR";
+		}
 		if (a == b && a == "integer")
 		{
 			return "integer";
 		}
 
-		context.insertError(oper, "!=types");
+		context.insertError(oper, "type");
 		return "ERROR";
 	}
 private:
