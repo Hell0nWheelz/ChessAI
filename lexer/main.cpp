@@ -12,13 +12,13 @@
 
 using namespace std;
 
-void displayToken(Token t, ofstream &f);
+void displayToken(Token t, ofstream &f, bool p);
 string generateSampleFile();
 
 int main() {
 	string infile, outfile;
 	ofstream file;
-	bool print = true;
+	bool print = false;
 
 	cout << "Enter the name of your file or enter in [Gen] to generate a sample file: " << endl;
 	cin >> infile;
@@ -39,24 +39,21 @@ int main() {
 	Token token;
 
 	
+	file.open("Lexer_" + outfile);
+	file << left << setw(18) << "Token" << setw(18) << "Lexeme" << setw(15) << "Line Number\n" << endl;
 	if (print)
 	{
-		file.open("lexer_" + outfile);
-		file << left << setw(18) << "Token" << setw(18) << "Lexeme" << setw(15) << "Line Number\n" << endl;
 		cout << left << setw(18) << "Token" << setw(18) << "Lexeme" << setw(18) << "Line Number\n" << endl;
-		while (!lexer.done()) {
-			token = lexer.next();
-			if (token.type != eof) {
-				displayToken(token, file);
-			}
-		}
-
-		file.close();
-
-		cout << endl << "Lexer completed successfully! " << endl << endl << endl;
 	}
+	while (!lexer.done()) {
+		token = lexer.next();
+		if (token.type != eof) {
+			displayToken(token, file, print);
+		}
+	}
+	file.close();
 
-	Parser parse(infile, "parser_" + outfile);
+	Parser parse(infile, "Parser_" + outfile);
 	auto root = parse.parseFile();
 
 	Context context;
@@ -83,18 +80,21 @@ string generateSampleFile()
 	*/
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
 		"$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
-		"\n$$ i := false; f := false; t := true; if(t < f) i:= 9; else i:=0; endif\n$$";
+		"\n$$ i := false; f := false; t := true; while(i<max){ if(t < f) i:= 9; else i:=0; endif}\n$$";
 	
 	outFile.close();
 
 	return "generated_sample.txt";
 }
 
-void displayToken(Token t, ofstream &f)
+void displayToken(Token t, ofstream &f, bool print)
 {
 	string a, b;
 
 	t.print(a, b);
 	f << left << setw(18) << a << setw(18) << b << setw(18) << t.lineNum << endl;
-	cout << left << setw(18) << a << setw(18) << b << setw(18) << t.lineNum << endl;
+	if (print)
+	{
+		cout << left << setw(18) << a << setw(18) << b << setw(18) << t.lineNum << endl;
+	}
 }

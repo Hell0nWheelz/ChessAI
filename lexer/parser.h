@@ -151,16 +151,7 @@ RootNode* Parser::parseFile() {
 		token = getToken();
 		if (token.type == eof)
 		{
-			// ~~~~ PRINT START ~~~~
-			if (print)
-			{
-				cout << endl << endl << "THE FILE HAS BEEN PARSED SUCCESSFULLY!" << endl;
-				system("pause");
-			}
-			outFile << endl << endl << "THE FILE HAS BEEN PARSED SUCCESSFULLY!" << endl;
-			outFile.close();
-			// ~~~~ PRINT END ~~~~
-
+			outFile.close(); //The file has been parsed successfully. Close file.
 			return new RootNode(f, d, s);
 		}
 		throwError("Error, expected EOF MARKER", token);
