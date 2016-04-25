@@ -276,17 +276,24 @@ public:
 		ifstatement->codeGen(context);
 		
 		int jump;
+		int if_label;
+		int else_label;
 		if (elsestatement)
 		{
 			jump = context.insertInstruction("JUMP", -999);
+			if_label = context.insertInstruction("LABEL", -999);
+			context.updateInstruction(jumpz, if_label + 1);
 			elsestatement->codeGen(context);
-
 		}
-		auto label = context.insertInstruction("LABEL", -999);
-		context.updateInstruction(jumpz, label + 1);
+		else
+		{
+			if_label = context.insertInstruction("LABEL", -999);
+			context.updateInstruction(jumpz, if_label + 1);
+		}
 		if (elsestatement)
 		{
-			context.updateInstruction(jump, label + 1);
+			else_label = context.insertInstruction("LABEL", -999);
+			context.updateInstruction(jump, else_label + 1);
 		}
 	}
 	~If() {

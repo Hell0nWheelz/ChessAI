@@ -93,7 +93,7 @@ public:
 	ITable() {}
 	~ITable() {}
 
-	int insertInstruction(string op, int operand) {
+	size_t insertInstruction(string op, int operand) {
 		table.push_back({ op, operand });
 		return int(table.size() - 1); // return instruction index
 	}
