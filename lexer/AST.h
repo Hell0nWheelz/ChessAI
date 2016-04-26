@@ -377,14 +377,15 @@ public:
 	While(Condition* cond, Node* body) : condition(cond), body(body) {}
 
 	void codeGen(Context &context) {
-		auto label = context.insertInstruction("LABEL", -999);
+		auto startlabel = context.insertInstruction("LABEL", -999);
 		condition->codeGen(context);
 		auto jumpz = context.insertInstruction("JUMPZ", -999);
 		body->codeGen(context);
-		auto jump = context.insertInstruction("JUMP", label+1);
+		auto jump = context.insertInstruction("JUMP", startlabel+1);
+		auto endlabel = context.insertInstruction("LABEL", -999);
 
 		//Update jumpz
-		context.updateInstruction(jumpz, jump+2);
+		context.updateInstruction(jumpz, endlabel+1);
 	}
 	~While() {
 		delete condition;
@@ -464,10 +465,14 @@ public:
 		{
 			return "integer";
 		}
-		if (a == "boolean")
+		if (a == "boolean" && oper.value == "-")
 		{
 			context.insertError(oper, "boolmath");
 			return "ERROR";
+		}
+		if (a== "boolean")
+		{
+			return "boolean";
 		}
 		
 		return "ERROR";

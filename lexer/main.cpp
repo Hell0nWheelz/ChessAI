@@ -80,7 +80,7 @@ string generateSampleFile()
 	*/
 	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
 		"$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
-		"\n$$ i := false; f := false; t := true; while(i<max){ if(t < f) i:= 9; else i:=0; endif}\n$$";
+		"\n$$ i := true; f := false; t := true; while(i<max){ if(t < f) i:= 9; else if(t>f) i:=0; else i:=100; endif}\n$$";
 	
 	outFile.close();
 
