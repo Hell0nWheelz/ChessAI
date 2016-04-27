@@ -1098,7 +1098,7 @@ Expression* Parser::parsePrimary() {
 				}
 				printToFile(token);
 				// ~~~~ PRINT END ~~~~
-				return new FunctionCall(token, ids);
+				return new FunctionCall(i, ids);
 			}
 		}
 		else

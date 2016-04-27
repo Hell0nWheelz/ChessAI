@@ -79,8 +79,8 @@ string generateSampleFile()
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(low);\nlow := low + step; \n if (x > y) if(a = b){a := b;} endif else if(x < y) b := a; else { a := c; } endif  x := y;  }\n$$";
 	*/
 	outFile << "[* this is a comment *]\n\n"
-		"$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
-		"\n$$ i := true;\n f := false; \nt := true;\n while(i<false){\n\t if(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif\n}\n$$";
+		"function id(){ return; }$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
+		"\n$$ i := true;\n f := false; \nt := true+id();\n while(i<false){\n\t if(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif\n}\n$$";
 	
 	outFile.close();
 
