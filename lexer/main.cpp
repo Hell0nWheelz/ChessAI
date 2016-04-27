@@ -78,9 +78,9 @@ string generateSampleFile()
 		"$$\ninteger low, high, step, y, a, b, c, x; \nboolean z; real t; [*declarations *]\n"
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(low);\nlow := low + step; \n if (x > y) if(a = b){a := b;} endif else if(x < y) b := a; else { a := c; } endif  x := y;  }\n$$";
 	*/
-	outFile << "[* this is comment for this sample code which\nconverts Fahrenheit into Celcius *]\n\n"
+	outFile << "[* this is a comment *]\n\n"
 		"$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
-		"\n$$ i := true; f := false; t := true; while(i<max){ if(t < f) i:= 9; else if(t>f) i:=0; else i:=100; endif}\n$$";
+		"\n$$ i := true;\n f := false; \nt := true;\n while(i<false){\n\t if(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif\n}\n$$";
 	
 	outFile.close();
 

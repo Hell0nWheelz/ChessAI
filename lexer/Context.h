@@ -158,25 +158,29 @@ public:
 		{
 			 error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' has not been declared.";
 		}
-		if (e == "declared")
+		else if (e == "declared")
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' has already been declared.";
 		}
-		if (e == "type")
+		else if (e == "type")
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' left and right expression types don't match.";
 		}
-		if (e == "real")
+		else if (e == "real")
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' real data types not supported in v3.14 of this compiler.";
 		}
-		if (e == "function")
+		else if (e == "function")
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' functions not supported in v3.14 of this compiler.";
 		}
-		if (e == "boolmath")
+		else if (e == "boolmath")
 		{
 			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "' boolean arithmatic operation not allowed.";
+		}
+		else
+		{
+			error = "Error on Line " + to_string(t.lineNum) + ": '" + t.value + "'" + e;
 		}
 
 		errorTable.push_back(error);

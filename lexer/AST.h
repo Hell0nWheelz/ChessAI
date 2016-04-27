@@ -199,6 +199,12 @@ public:
 		{
 			return a;
 		}
+		if (a == "ERROR")
+		{
+			return "ERROR";
+		}
+
+		context.insertError(assignID, " assignment variable different type than expression type " + a + ".");
 		return "ERROR";
 	}
 	~Assign() {
@@ -465,7 +471,7 @@ public:
 		{
 			return "integer";
 		}
-		if (a == "boolean" && oper.value == "-")
+		if (a == "boolean")
 		{
 			context.insertError(oper, "boolmath");
 			return "ERROR";
