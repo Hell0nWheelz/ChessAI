@@ -64,7 +64,7 @@ private:
 	Expression* parsePrimary();						// R28
 	//End of Language Rule Functions
 
-	bool print = false; //used for toggling printing on and off
+	bool print = true; //used for toggling printing on and off
 	void displayToken(Token t);
 	void printToFile(Token t);
 	void throwError(string s, Token &t);
@@ -704,20 +704,18 @@ If* Parser::parseIfPrime(Condition *condition, Node *ifStatement) {
 		// ~~~~ PRINT END ~~~~
 
 		auto elseStatement = parseStatement(true);
-		if (!dynamic_cast<If*>(elseStatement))
+		token = getToken();
+		if (token.value != "endif")
 		{
-			token = getToken();
-			if (token.value != "endif")
-			{
-				throwError("Error, expected 'ENDIF'.", token);
-			}
-			// ~~~~ PRINT START ~~~~
-			if (print) {
-				displayToken(token);
-			}
-			printToFile(token);
-			// ~~~~ PRINT END ~~~~
+			throwError("Error, expected 'ENDIF'.", token);
 		}
+		// ~~~~ PRINT START ~~~~
+		if (print) {
+			displayToken(token);
+		}
+		printToFile(token);
+		// ~~~~ PRINT END ~~~~
+
 
 		return new If(condition, ifStatement, elseStatement);
 	}
