@@ -80,7 +80,7 @@ string generateSampleFile()
 	*/
 	outFile << "[* this is a comment *]\n\n"
 		"function id(){ return; }$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
-		"\n$$ i := true;\n f := false; \nt := true+id();\n while(i<false){\n\t if(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif\n}\n$$";
+		"\n$$ i := 0+0+0+0*21+1;\n f := false; \nt := true;\n while(i<max){\n\t if(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif\n}\n$$";
 	
 	outFile.close();
 
