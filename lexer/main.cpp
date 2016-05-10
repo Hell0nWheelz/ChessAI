@@ -19,6 +19,7 @@ int main() {
 	string infile, outfile;
 	ofstream file;
 	bool print = false;
+	char c;
 
 	cout << "Enter the name of your file or enter in [Gen] to generate a sample file: " << endl;
 	cin >> infile;
@@ -64,6 +65,10 @@ int main() {
 		context.printSTable("STable_" + outfile);
 		context.printITable("ITable_" + outfile);
 	}
+
+	cin.ignore();
+	cout << "\nPress any key to continue... ";
+	cin.get(c);
 	
 	return 0;
 }
@@ -79,8 +84,8 @@ string generateSampleFile()
 		"\n$$\nscanf(low, high, step); \nwhile(low<high)\n{ printf(low); \nPrintf(low);\nlow := low + step; \n if (x > y) if(a = b){a := b;} endif else if(x < y) b := a; else { a := c; } endif  x := y;  }\n$$";
 	*/
 	outFile << "[* this is a comment *]\n\n"
-		"function id(){ return; }$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
-		"\n$$ i := 0+0+0+0*21+1;\n f := false; \nt := true;\n while(i<max){\n\t if(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif\n}\n$$";
+		"function id(){ \n\treturn; \n}\n$$\ninteger i, max, sum; \nboolean t, f; [*declarations *]\n"
+		"\n$$\ni := 0+0+0+0*21+1;\nf := false;\nt := true;\nwhile(i<max){\n\tif(t < f)\n\t\t i:= 9; \n\telse if(t>f) \n\t\ti:=0; \n\telse \n\t\ti:=100; \n\tendif \nendif\n}\n$$";
 	
 	outFile.close();
 
